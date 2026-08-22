@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+
+# imagens enviadas pelo painel (ficam no disco local)
+backend/uploads/produtos/*
+!backend/uploads/produtos/.gitkeep
+
+.vscode/
+.idea/
+.DS_Store

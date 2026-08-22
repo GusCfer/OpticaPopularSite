@@ -1,0 +1,146 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border-inverse);
+}
+
+.header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 92px;
+}
+
+.header__logo {
+  display: flex;
+  align-items: center;
+}
+
+.header__logo img {
+  height: 64px;
+  width: auto;
+}
+
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.header__nav ul {
+  display: flex;
+  gap: 28px;
+}
+
+.header__nav ul a {
+  color: var(--text-inverse-muted);
+  font-size: 15px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.header__nav ul a:hover {
+  color: var(--accent);
+}
+
+/* página atual em destaque no menu */
+.header__nav ul a.is-atual {
+  color: var(--accent);
+  position: relative;
+}
+
+.header__nav ul a.is-atual::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+@media (max-width: 860px) {
+  .header__nav ul a.is-atual::after {
+    display: none;
+  }
+}
+
+.header__toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.header__toggle span {
+  height: 2px;
+  background: var(--text-inverse);
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+@media (max-width: 860px) {
+  .header__bar {
+    height: 72px;
+  }
+
+  .header__logo img {
+    height: 48px;
+  }
+
+  .header__toggle {
+    display: flex;
+  }
+
+  .header__nav {
+    position: absolute;
+    top: 72px;
+    left: 0;
+    right: 0;
+    background: var(--bg-dark-soft);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 24px;
+    border-bottom: 1px solid var(--border-inverse);
+    transform: translateY(-8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .header__nav.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .header__nav ul {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .header__cta {
+    justify-content: center;
+  }
+
+  .header__toggle.is-open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .header__toggle.is-open span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .header__toggle.is-open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+}

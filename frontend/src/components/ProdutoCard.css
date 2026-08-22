@@ -1,0 +1,167 @@
+.produto-card {
+  /* cabem os 5 destaques numa linha no desktop; com menos, ficam centralizados */
+  flex: 1 1 200px;
+  max-width: 272px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.produto-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+
+.produto-card__midia {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(140deg, var(--cream) 0%, #e6d8c6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* reset do <button> */
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.produto-card__midia--clicavel {
+  cursor: zoom-in;
+}
+
+.produto-card__midia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.produto-card__midia--clicavel:hover img {
+  transform: scale(1.06);
+}
+
+.produto-card__midia--clicavel:focus-visible {
+  outline: 3px solid var(--brown-500);
+  outline-offset: -3px;
+}
+
+.produto-card__sem-foto {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.produto-card__tag {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(18, 13, 11, 0.82);
+  color: var(--text-inverse);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* lupa que aparece no hover, avisando que dá pra ampliar */
+.produto-card__lupa {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(18, 13, 11, 0.78);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.produto-card__midia--clicavel:hover .produto-card__lupa,
+.produto-card__midia--clicavel:focus-visible .produto-card__lupa {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.produto-card__corpo {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.produto-card__marca {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brown-500);
+}
+
+.produto-card h3 {
+  font-size: 19px;
+}
+
+.produto-card__desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.produto-card__preco {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.produto-card__preco strong {
+  font-size: 22px;
+  font-family: var(--font-heading);
+  color: var(--text);
+}
+
+.produto-card__preco-antigo {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.produto-card__cta {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+
+@media (max-width: 560px) {
+  .produto-card {
+    flex-basis: 100%;
+    max-width: 340px;
+  }
+}

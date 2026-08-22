@@ -1,0 +1,126 @@
+.produtos-topo {
+  background: radial-gradient(circle at 20% 20%, var(--brown-900) 0%, var(--black) 60%);
+  color: var(--text-inverse);
+  padding: 64px 0 56px;
+}
+
+.produtos-topo h1 {
+  font-size: 42px;
+  color: var(--text-inverse);
+  margin-bottom: 12px;
+}
+
+.produtos-topo p {
+  color: var(--text-inverse-muted);
+  max-width: 560px;
+}
+
+.produtos-topo__eyebrow {
+  color: var(--accent);
+}
+
+.produtos {
+  padding-top: 40px;
+}
+
+.produtos__filtros {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.produtos__chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.chip:hover {
+  border-color: var(--brown-300);
+  color: var(--text);
+}
+
+.chip--ativo {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--text-inverse);
+}
+
+.produtos__busca {
+  font-family: inherit;
+  font-size: 15px;
+  padding: 11px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text);
+  min-width: 260px;
+}
+
+.produtos__busca:focus {
+  outline: 2px solid var(--brown-300);
+  outline-offset: 1px;
+}
+
+.produtos__contagem {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.produtos__grid {
+  /* grade: todos os cards com a mesma largura, linhas alinhadas */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 24px;
+}
+
+.produtos__grid .produto-card {
+  max-width: none;
+}
+
+.produtos__aviso {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+@media (max-width: 720px) {
+  .produtos-topo {
+    padding: 48px 0 40px;
+  }
+
+  .produtos-topo h1 {
+    font-size: 32px;
+  }
+
+  .produtos__filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .produtos__busca {
+    min-width: 0;
+  }
+
+  .produtos__grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}

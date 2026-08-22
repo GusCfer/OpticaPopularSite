@@ -1,0 +1,16 @@
+.destaques {
+  background: var(--bg);
+}
+
+.destaques__grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+.destaques__rodape {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}

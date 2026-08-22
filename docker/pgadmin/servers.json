@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Otica Popular",
+      "Group": "Servers",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "otica_popular",
+      "Username": "otica",
+      "SSLMode": "prefer",
+      "Comment": "Banco local da Optica Popular (via docker-compose)"
+    }
+  }
+}

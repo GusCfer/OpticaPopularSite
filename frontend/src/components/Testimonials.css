@@ -1,0 +1,27 @@
+.testimonials__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.testimonials__card {
+  margin: 0;
+  padding: 28px 26px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 4px 18px 18px 4px;
+}
+
+.testimonials__card p {
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.testimonials__card cite {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-muted);
+}

@@ -1,0 +1,36 @@
+.features {
+  background: var(--bg-elevated);
+}
+
+.features__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 32px;
+}
+
+.features__item {
+  padding: 28px 24px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg);
+}
+
+.features__index {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  color: var(--accent);
+  -webkit-text-stroke: 1px var(--primary);
+  color: transparent;
+  margin-bottom: 16px;
+}
+
+.features__item h3 {
+  font-size: 19px;
+  margin-bottom: 10px;
+}
+
+.features__item p {
+  color: var(--text-muted);
+  font-size: 14px;
+}

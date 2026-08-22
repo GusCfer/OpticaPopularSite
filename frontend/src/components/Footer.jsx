@@ -1,0 +1,31 @@
+import logo from '../assets/Optica Popular - Logo Branco.png'
+import './Footer.css'
+
+const year = new Date().getFullYear()
+
+function Footer() {
+  return (
+    <footer className="footer">
+      <div className="container footer__grid">
+        <div>
+          <a href="#inicio" className="footer__logo">
+            <img src={logo} alt="Óptica Popular" />
+          </a>
+          <p>Cuidando da sua visão com estilo e proximidade.</p>
+        </div>
+
+        <nav className="footer__nav">
+          <a href="#diferenciais">Diferenciais</a>
+          <a href="#depoimentos">Depoimentos</a>
+          <a href="#contato">Contato</a>
+        </nav>
+      </div>
+
+      <div className="container footer__bottom">
+        <span>&copy; {year} Óptica Popular. Todos os direitos reservados.</span>
+      </div>
+    </footer>
+  )
+}
+
+export default Footer

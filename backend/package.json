@@ -1,0 +1,26 @@
+{
+  "name": "otica-popular-backend",
+  "version": "1.0.0",
+  "description": "API da Óptica Popular — catálogo de produtos e painel administrativo",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "seed": "node scripts/seed.js",
+    "criar-admin": "node scripts/criar-admin.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "pg": "^8.16.3",
+    "zod": "^3.25.76"
+  }
+}
