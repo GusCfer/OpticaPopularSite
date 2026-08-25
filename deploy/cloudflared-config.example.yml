@@ -1,0 +1,34 @@
+# =====================================================================
+# Cloudflare Tunnel — /etc/cloudflared/config.yml
+#
+#   cloudflared tunnel login
+#   cloudflared tunnel create otica
+#   cloudflared tunnel route dns otica oticapopular.com.br
+#   cloudflared tunnel route dns otica www.oticapopular.com.br
+#   sudo cloudflared service install
+#
+# Troque <ID-DO-TUNEL> pelo id que o "tunnel create" imprimiu e os
+# hostnames pelo seu domínio.
+# =====================================================================
+
+tunnel: <ID-DO-TUNEL>
+credentials-file: /etc/cloudflared/<ID-DO-TUNEL>.json
+
+# Um tunnel só, apontando para o Nginx local.
+ingress:
+  - hostname: oticapopular.com.br
+    service: http://localhost:80
+  - hostname: www.oticapopular.com.br
+    service: http://localhost:80
+
+  # tudo que não bater com os hostnames acima morre aqui
+  - service: http_status:404
+
+# ---------------------------------------------------------------------
+# NÃO publique o pgAdmin (5050) nem o Postgres (5432) pelo tunnel sem
+# proteger com o Cloudflare Access. Para administrar o banco, use um
+# túnel SSH da sua máquina:
+#
+#   ssh -L 5050:localhost:5050 usuario@servidor
+#   # e abra http://localhost:5050 no seu navegador
+# ---------------------------------------------------------------------

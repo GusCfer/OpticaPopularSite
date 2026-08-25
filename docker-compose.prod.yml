@@ -1,0 +1,21 @@
+# =====================================================================
+# Ajustes de produção do banco. Use SEMPRE junto com o arquivo principal:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# O que muda: Postgres e pgAdmin passam a escutar SÓ em 127.0.0.1.
+# Continuam acessíveis para a API (que roda no mesmo servidor) e para
+# você via túnel SSH, mas somem da internet mesmo que o firewall falhe.
+# =====================================================================
+services:
+  db:
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+
+  pgadmin:
+    ports:
+      - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
+    environment:
+      # em produção o pgAdmin pede login de verdade
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "True"

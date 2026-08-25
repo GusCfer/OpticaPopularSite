@@ -39,6 +39,12 @@ function tratadorDeErros(err, req, res, _next) {
     })
   }
   if (err.code === '23505') {
+    if (err.constraint === 'uq_consultas_medico_horario') {
+      return res.status(409).json({
+        erro: 'Esse médico já tem outra consulta marcada nesse mesmo dia e horário.',
+        codigo: 'HORARIO_OCUPADO',
+      })
+    }
     return res.status(409).json({ erro: 'Já existe um registro com esses dados', codigo: 'DUPLICADO' })
   }
   if (err.code === '23503') {

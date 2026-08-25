@@ -3,6 +3,7 @@
 const app = require('./app')
 const env = require('./config/env')
 const { pool } = require('./lib/db')
+const { iniciarAgendador, pararAgendador } = require('./jobs/lembretes')
 
 async function iniciar() {
   try {
@@ -19,8 +20,12 @@ async function iniciar() {
     console.log(`[api] rodando em http://localhost:${env.PORT} (${env.NODE_ENV})`)
   })
 
+  // Cron dos lembretes de consulta (um dia antes, 08:00 por padrão)
+  iniciarAgendador()
+
   const encerrar = (sinal) => {
     console.log(`\n[api] ${sinal} recebido, encerrando...`)
+    pararAgendador()
     servidor.close(() => pool.end().then(() => process.exit(0)))
   }
   process.on('SIGINT', () => encerrar('SIGINT'))

@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit')
 const env = require('./config/env')
 const authRoutes = require('./routes/auth.routes')
 const produtosRoutes = require('./routes/produtos.routes')
+const consultasRoutes = require('./routes/consultas.routes')
 const { naoEncontrado, tratadorDeErros } = require('./middlewares/erro')
 
 const app = express()
@@ -25,14 +26,32 @@ app.use(
   })
 )
 
+// CORS. Em produção o site e a API ficam atrás do mesmo domínio (Nginx), então
+// a maioria das chamadas é de MESMA ORIGEM — essas passam sempre, mesmo que
+// CORS_ORIGINS esteja com o domínio errado. Sem isso, um .env desatualizado
+// derruba o painel inteiro com um erro que não explica nada.
 app.use(
-  cors({
-    origin(origin, cb) {
-      if (!origin) return cb(null, true) // curl, apps nativos, healthcheck
-      if (env.CORS_ORIGINS.includes(origin)) return cb(null, true)
-      return cb(new Error(`Origem não autorizada: ${origin}`))
-    },
-    credentials: true,
+  cors((req, cb) => {
+    const origem = req.headers.origin
+
+    // curl, apps nativos, healthcheck: sem Origin, não é uma chamada de navegador
+    if (!origem) return cb(null, { origin: true, credentials: true })
+
+    let mesmaOrigem = false
+    try {
+      mesmaOrigem = new URL(origem).host === req.headers.host
+    } catch {
+      mesmaOrigem = false
+    }
+
+    if (mesmaOrigem || env.CORS_ORIGINS.includes(origem)) {
+      return cb(null, { origin: true, credentials: true })
+    }
+
+    // Não lançamos erro: isso viraria um 500 confuso. O navegador bloqueia
+    // sozinho pela falta do cabeçalho, e aqui fica o registro do motivo.
+    console.warn(`[cors] origem bloqueada: ${origem} — inclua em CORS_ORIGINS no .env`)
+    return cb(null, { origin: false })
   })
 )
 
@@ -64,6 +83,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, ambiente: env.NODE_EN
 
 app.use('/api/auth', authRoutes)
 app.use('/api', produtosRoutes)
+app.use('/api', consultasRoutes)
 
 app.use(naoEncontrado)
 app.use(tratadorDeErros)

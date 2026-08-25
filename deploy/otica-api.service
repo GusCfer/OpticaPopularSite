@@ -1,0 +1,52 @@
+# =====================================================================
+# API da Óptica Popular — serviço do systemd
+#
+#   sudo cp deploy/otica-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now otica-api
+#   journalctl -u otica-api -f          # acompanhar os logs
+#
+# As variáveis NÃO vêm por EnvironmentFile de propósito: a API já lê o
+# backend/.env pelo dotenv. Assim a senha de app do Gmail (que tem espaços)
+# não quebra o parser do systemd.
+# =====================================================================
+
+[Unit]
+Description=API da Optica Popular (Express + PostgreSQL)
+Documentation=file:///opt/otica/README.md
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=otica
+Group=otica
+WorkingDirectory=/opt/otica/backend
+Environment=NODE_ENV=production
+Environment=TZ=America/Sao_Paulo
+# Caminho do Node instalado pelo NodeSource (o do passo 7.1). Instalou por
+# nvm ou snap? Troque pelo que "which node" mostrar.
+ExecStart=/usr/bin/node src/server.js
+
+# Se o banco ainda estiver subindo, o server.js sai com erro — o systemd tenta de novo.
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=otica-api
+
+# ---- proteções: o serviço só enxerga o que precisa ----
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+# as fotos dos produtos são gravadas aqui
+ReadWritePaths=/opt/otica/backend/uploads
+
+[Install]
+WantedBy=multi-user.target

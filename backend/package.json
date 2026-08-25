@@ -8,7 +8,9 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "seed": "node scripts/seed.js",
-    "criar-admin": "node scripts/criar-admin.js"
+    "criar-admin": "node scripts/criar-admin.js",
+    "migrar": "node scripts/migrar.js",
+    "testar-email": "node scripts/testar-email.js"
   },
   "license": "ISC",
   "dependencies": {
@@ -20,6 +22,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^9.0.5",
     "pg": "^8.16.3",
     "zod": "^3.25.76"
   }

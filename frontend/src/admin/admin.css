@@ -494,3 +494,125 @@
     justify-content: space-between;
   }
 }
+
+/* ---------------------------- abas do painel ----------------------- */
+.painel__abas {
+  background: var(--black);
+  padding: 0 24px;
+  display: flex;
+  gap: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.aba {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 12px 18px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-inverse-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.aba:hover {
+  color: var(--text-inverse);
+}
+
+.aba--ativa {
+  color: var(--text-inverse);
+  border-bottom-color: var(--accent);
+}
+
+/* ---------------------------- agenda ------------------------------- */
+.painel__nota {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: -6px 0 0;
+}
+
+.painel__nota code,
+.alerta code {
+  font-size: 12px;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+
+.filtro-data {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.filtro-data input {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--text);
+}
+
+.alerta--aviso {
+  background: #fdf3e3;
+  border-color: #e6cfa4;
+  color: #7a5210;
+}
+
+.pill--espera {
+  background: #eef2fb;
+  color: #33507f;
+}
+
+.pill--erro {
+  background: #fdeceb;
+  color: #8c2019;
+}
+
+/* a agenda tem 4 filtros: eles precisam dividir a linha, não empilhar */
+.painel__filtros--agenda {
+  flex: 1;
+  align-items: center;
+}
+
+.painel__filtros--agenda input[type='search'] {
+  flex: 1 1 240px;
+  min-width: 200px;
+  max-width: 340px;
+}
+
+.painel__filtros--agenda select {
+  width: auto;
+  min-width: 170px;
+}
+
+/* na agenda as ações não cabem numa linha só em telas menores */
+.acoes .botao-link:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .acoes {
+    white-space: normal;
+  }
+}
+
+.campo__dica {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.tabela td small {
+  display: block;
+}
