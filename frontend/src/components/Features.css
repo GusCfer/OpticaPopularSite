@@ -34,3 +34,32 @@
   color: var(--text-muted);
   font-size: 14px;
 }
+
+@media (max-width: 600px) {
+  /* quatro diferenciais em 2x2 em vez de quatro cartões empilhados */
+  .features__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .features__item {
+    padding: 14px 12px;
+    border-radius: 12px;
+  }
+
+  .features__index {
+    font-size: 17px;
+    margin-bottom: 6px;
+  }
+
+  .features__item h3 {
+    font-size: 14.5px;
+    line-height: 1.25;
+    margin-bottom: 5px;
+  }
+
+  .features__item p {
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+}

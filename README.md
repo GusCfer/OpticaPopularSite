@@ -197,17 +197,27 @@ Variáveis relacionadas, todas em `backend/.env`:
 | `LEMBRETES_CRON`   | `0 8 * * *`          | Quando varrer a agenda (minuto hora dia mês semana) |
 | `OTICA_*`          | vazio                | Nome, telefone e endereço que aparecem no e-mail  |
 
-### Banco já criado antes dessa funcionalidade?
+### Banco já criado antes dessa funcionalidade (ou de uma futura)
 
-O Postgres só roda `docker/initdb/` na primeira subida. Para criar a tabela num banco
-que já existe:
+O Postgres só roda `docker/initdb/` na primeira subida do container. Para aplicar uma
+tabela nova num banco que já existe (produção, por exemplo):
 
 ```bash
 cd backend
 npm run migrar
 ```
 
-Pode rodar quantas vezes quiser — o SQL é idempotente.
+**Como ele decide o que rodar:** não olha o banco — olha a pasta. Pega todo arquivo
+`docker/initdb/NN-nome.sql` com `NN` a partir de `03` (o `01` e o `02` são a base, que o
+Postgres já aplica sozinho) e roda **todos, em ordem**, sempre, mesmo os que já rodaram
+antes. Isso só é seguro porque cada um é escrito para ser **idempotente**
+(`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP TRIGGER IF EXISTS`…) — rodar de novo algo
+que já existe não dá erro, só não faz nada.
+
+Ou seja: **para adicionar uma tabela nova no futuro, não mexa no `migrar.js`.** Só crie
+`docker/initdb/04-o-que-for.sql` seguindo esse mesmo estilo (sempre com `IF NOT EXISTS`
+ou equivalente) e rode `npm run migrar` — ele encontra sozinho. O próximo depois desse é
+`05-`, e assim por diante.
 
 ---
 

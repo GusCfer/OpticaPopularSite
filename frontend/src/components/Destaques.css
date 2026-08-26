@@ -14,3 +14,30 @@
   justify-content: center;
   margin-top: 40px;
 }
+
+@media (max-width: 600px) {
+  /* a linha de apoio é decorativa e custava duas linhas antes dos produtos */
+  .destaques .section-head p {
+    display: none;
+  }
+
+  /* o grid é flex e centraliza: com base de 50% - metade do gap,
+     entram exatamente dois cards por linha */
+  .destaques__grid {
+    gap: 10px;
+    justify-content: flex-start;
+  }
+
+  .destaques__grid .produto-card {
+    flex: 1 1 calc(50% - 5px);
+    max-width: calc(50% - 5px);
+  }
+
+  .destaques__rodape {
+    margin-top: 18px;
+  }
+
+  .destaques__rodape .btn {
+    width: 100%;
+  }
+}

@@ -67,8 +67,11 @@ function Produtos() {
           <span className="eyebrow produtos-topo__eyebrow">Catálogo</span>
           <h1>{nomeCategoria || 'Nossos produtos'}</h1>
           <p>
-            Óculos, relógios e joias disponíveis na loja. Clique na foto para ampliar e chame a
-            gente no WhatsApp para reservar.
+            Óculos, relógios e joias disponíveis na loja.{' '}
+            {/* a instrução só no desktop: no celular custava duas linhas antes da grade */}
+            <span className="produtos-topo__extra">
+              Clique na foto para ampliar e chame a gente no WhatsApp para reservar.
+            </span>
           </p>
         </div>
       </section>

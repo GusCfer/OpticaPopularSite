@@ -49,11 +49,19 @@ function Contact() {
         <form className="contact__form" onSubmit={handleSubmit}>
           <label>
             Nome
-            <input type="text" name="name" required placeholder="Seu nome" />
+            <input type="text" name="name" autoComplete="name" required placeholder="Seu nome" />
           </label>
           <label>
             Telefone
-            <input type="tel" name="phone" required placeholder="(00) 00000-0000" />
+            {/* inputMode numérico abre o teclado de números direto no celular */}
+            <input
+              type="tel"
+              name="phone"
+              inputMode="tel"
+              autoComplete="tel"
+              required
+              placeholder="(00) 00000-0000"
+            />
           </label>
           <label>
             Mensagem

@@ -5,7 +5,7 @@
 }
 
 .produtos-topo h1 {
-  font-size: 42px;
+  font-size: clamp(28px, 5.4vw, 42px);
   color: var(--text-inverse);
   margin-bottom: 12px;
 }
@@ -52,9 +52,11 @@
     border-color 0.2s ease;
 }
 
-.chip:hover {
-  border-color: var(--brown-300);
-  color: var(--text);
+@media (hover: hover) {
+  .chip:hover {
+    border-color: var(--brown-300);
+    color: var(--text);
+  }
 }
 
 .chip--ativo {
@@ -107,12 +109,12 @@
     padding: 48px 0 40px;
   }
 
-  .produtos-topo h1 {
-    font-size: 32px;
-  }
-
+  /* flex-wrap: wrap sobrou do layout em linha do desktop; em coluna ele
+     fazia a linha ter a largura do conteúdo dos chips (452px numa tela de
+     360px) e criava barra de rolagem horizontal na página inteira. */
   .produtos__filtros {
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
   }
 
@@ -120,7 +122,86 @@
     min-width: 0;
   }
 
+}
+
+/* Tablet: com auto-fill o minmax de 230px só cabia duas vezes em 768px e
+   os cards ficavam gigantes. Aqui a grade é fixa em três colunas. */
+@media (min-width: 601px) and (max-width: 900px) {
   .produtos__grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .produtos-topo {
+    padding: 20px 0 18px;
+  }
+
+  .produtos-topo h1 {
+    font-size: clamp(21px, 6vw, 26px);
+    margin-bottom: 6px;
+  }
+
+  .produtos-topo p {
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+
+  .produtos-topo__extra {
+    display: none;
+  }
+
+  .produtos {
+    padding-top: 18px;
+  }
+
+  /* duas colunas fixas: antes cada produto ocupava quase a tela inteira */
+  .produtos__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .produtos__filtros {
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .produtos__chips {
+    gap: 8px;
+    min-width: 0;
+    /* rolagem horizontal em vez de quebrar em três linhas de chips */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    margin-inline: -16px;
+    padding-inline: 16px;
+  }
+
+  .produtos__chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip {
+    flex: 0 0 auto;
+    padding: 8px 13px;
+    font-size: 12.5px;
+  }
+
+  /* 16px é obrigatório: com menos, o Safari dá zoom ao focar o campo */
+  .produtos__busca {
+    font-size: 16px;
+    padding: 9px 14px;
+  }
+
+  .produtos__contagem {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .produtos__aviso {
+    padding: 32px 0;
+    font-size: 14px;
   }
 }

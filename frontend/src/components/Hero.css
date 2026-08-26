@@ -17,7 +17,7 @@
 }
 
 .hero h1 {
-  font-size: 52px;
+  font-size: clamp(34px, 4.6vw, 52px);
   color: var(--text-inverse);
   margin-bottom: 20px;
 }
@@ -36,58 +36,84 @@
 }
 
 .hero__visual {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.hero__frame {
+.hero__marca {
   width: 100%;
-  max-width: 420px;
-  aspect-ratio: 5 / 3;
-  padding: 40px;
-  background: rgba(244, 236, 225, 0.06);
-  border: 1px solid var(--border-inverse);
-  border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero__logo {
-  width: 100%;
-  max-width: 280px;
-  max-height: 170px;
+  max-width: 360px;
   height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35));
 }
 
 @media (max-width: 900px) {
+  .hero {
+    padding: 48px 0 52px;
+  }
+
   .hero__grid {
     grid-template-columns: 1fr;
+    gap: 28px;
     text-align: center;
   }
 
-  .hero h1 {
-    font-size: 38px;
-  }
-
   .hero__text {
+    font-size: 16px;
     margin-inline: auto;
+    margin-bottom: 24px;
   }
 
   .hero__actions {
     justify-content: center;
   }
 
-  .hero__visual {
-    margin-top: 24px;
+  .hero__marca {
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding: 26px 0 30px;
   }
 
-  .hero__logo {
-    max-width: 220px;
-    max-height: 140px;
+  .hero__grid {
+    gap: 20px;
+  }
+
+  .hero h1 {
+    font-size: clamp(25px, 7.2vw, 30px);
+    margin-bottom: 10px;
+  }
+
+  .hero__text {
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 40ch;
+    margin-bottom: 18px;
+  }
+
+  .hero__text-extra {
+    display: none;
+  }
+
+  /* lado a lado ocupa metade da altura de dois botões empilhados.
+     flex-basis auto (e não 0) faz cada um pedir a largura do próprio
+     rótulo: sem isso "Agende uma avaliação" quebrava em duas linhas e
+     esticava os dois botões. Em tela muito estreita eles empilham. */
+  .hero__actions {
+    gap: 8px;
+  }
+
+  .hero__actions .btn {
+    flex: 1 1 auto;
+    padding: 11px 12px;
+    font-size: 13px;
+  }
+
+  /* a marca já aparece no header logo acima: aqui ela é só um selo */
+  .hero__marca {
+    max-width: 100px;
   }
 }

@@ -13,7 +13,11 @@ function Hero() {
           </h1>
           <p className="hero__text">
             Óculos de grau, óculos de sol e lentes de contato com atendimento próximo e
-            personalizado. Encontre o modelo perfeito para o seu rosto e para o seu dia a dia.
+            personalizado.{' '}
+            {/* segunda frase só no desktop: no celular ela custava duas linhas do topo */}
+            <span className="hero__text-extra">
+              Encontre o modelo perfeito para o seu rosto e para o seu dia a dia.
+            </span>
           </p>
           <div className="hero__actions">
             <Link to="/produtos" className="btn btn-primary">
@@ -25,10 +29,16 @@ function Hero() {
           </div>
         </div>
 
+        {/* a marca aparece solta sobre o fundo escuro — sem cartão nem moldura */}
         <div className="hero__visual">
-          <div className="hero__frame">
-            <img src={logo} alt="Óptica Popular" className="hero__logo" />
-          </div>
+          <img
+            className="hero__marca"
+            src={logo}
+            alt="Óptica Popular"
+            width="926"
+            height="626"
+            fetchPriority="high"
+          />
         </div>
       </div>
     </section>

@@ -81,3 +81,55 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 600px) {
+  .contact__grid {
+    gap: 24px;
+  }
+
+  .contact__info {
+    margin: 16px 0;
+    gap: 10px;
+  }
+
+  .contact__info li {
+    padding-bottom: 10px;
+  }
+
+  .contact__info strong {
+    font-size: 13px;
+  }
+
+  .contact__info span {
+    font-size: 13px;
+  }
+
+  /* o formulário tinha 32px de padding dentro de um container de 16px:
+     sobrava pouquíssima largura para os campos */
+  .contact__form {
+    padding: 16px 14px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .contact__form label {
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  /* 16px evita o zoom automático do Safari ao focar um campo */
+  .contact__form input,
+  .contact__form textarea {
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+
+  .contact__form textarea {
+    min-height: 84px;
+  }
+
+  .contact__form .btn,
+  .contact .btn-dark {
+    width: 100%;
+  }
+}
