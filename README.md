@@ -320,277 +320,39 @@ Erros vêm sempre como `{ erro, codigo, detalhes? }`.
 
 ---
 
-## 7. Publicar no servidor (Ubuntu Server)
+## 7. Publicar no servidor
+
+O passo a passo completo está em **[`deploy/DEPLOY.md`](deploy/DEPLOY.md)** — desde
+instalar o Node até configurar o Cloudflare Tunnel, para um Ubuntu Server com CasaOS.
 
 Como fica lá dentro:
 
 ```
-Internet → Cloudflare → cloudflared (tunnel) → Nginx :80 ─┬→ site compilado (arquivos)
-                                                          └→ /api e /uploads → API :3333 (systemd)
-                                                                                    ↓
-                                                                      PostgreSQL :5432 (Docker)
+Internet → Cloudflare → cloudflared → Nginx :8080 ─┬→ site compilado (/var/www/otica)
+                                                   └→ /api e /uploads → API :3333 (systemd)
+                                                                              ↓
+                                                                PostgreSQL :5432 (Docker)
 ```
 
-Só o `cloudflared` fala com a internet. O Nginx, a API e o banco ficam todos no
-`localhost` — **nenhuma porta precisa ser aberta no firewall**, nem a 80.
-
-Site e painel ficam na **mesma origem** do `/api`, então não existe CORS entre eles e o
-domínio não fica gravado dentro do JavaScript compilado.
-
-### 7.1 Preparar o servidor
-
-```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y nginx git curl rsync
-
-# Node.js 20 LTS
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# Docker (só para o banco e o pgAdmin)
-curl -fsSL https://get.docker.com | sudo sh
-```
-
-Um usuário sem privilégios para rodar a aplicação:
-
-```bash
-sudo useradd --system --create-home --home-dir /opt/otica --shell /bin/bash otica
-sudo usermod -aG docker otica
-```
-
-Firewall fechado, menos o SSH — o resto entra pelo tunnel:
-
-```bash
-sudo ufw allow OpenSSH
-sudo ufw enable
-sudo ufw status
-```
-
-### 7.2 Colocar o código no servidor
-
-```bash
-sudo -u otica git clone <url-do-repositorio> /opt/otica
-# sem git? mande com scp da sua máquina:
-#   scp -r OticaPopularSap usuario@servidor:/tmp/otica
-#   sudo rsync -a /tmp/otica/ /opt/otica/ && sudo chown -R otica:otica /opt/otica
-```
-
-### 7.3 Subir o banco
-
-```bash
-cd /opt/otica
-cp .env.example .env
-nano .env        # troque POSTGRES_PASSWORD e PGADMIN_PASSWORD por senhas fortes
-
-sudo -u otica docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-O `docker-compose.prod.yml` prende o Postgres e o pgAdmin em `127.0.0.1`: eles somem da
-internet mesmo que o firewall falhe. Para abrir o pgAdmin, faça um túnel SSH da sua
-máquina e acesse `http://localhost:5050`:
-
-```bash
-ssh -L 5050:localhost:5050 usuario@servidor
-```
-
-### 7.4 Configurar a API
-
-```bash
-cd /opt/otica/backend
-cp .env.example .env
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"   # gere o segredo
-nano .env
-```
-
-O que muda em relação ao desenvolvimento:
-
-```ini
-NODE_ENV=production
-DATABASE_URL=postgresql://otica:A_SENHA_QUE_VOCE_POS@localhost:5432/otica_popular
-
-# domínio público — é o que monta o link das fotos dos produtos
-API_PUBLIC_URL=https://oticapopular.com.br
-CORS_ORIGINS=https://oticapopular.com.br,https://www.oticapopular.com.br
-
-JWT_SECRET=<os 96 caracteres que o comando acima gerou>
-
-SMTP_USER=seuemail@gmail.com
-SMTP_PASS=abcd efgh ijkl mnop
-OTICA_TELEFONE=(00) 0000-0000
-OTICA_ENDERECO=Rua Exemplo, 100 - Centro
-```
-
-> A API **se recusa a subir** em produção com o `JWT_SECRET` de exemplo. É proposital.
-
-> Errar o `CORS_ORIGINS` não derruba o painel: chamadas de **mesma origem** (site e API
-> no mesmo domínio, que é o caso aqui) passam sempre. A lista só vale para quem chama a
-> API de outro domínio. Se bloquear alguém, aparece no log: `[cors] origem bloqueada:`
-
-Instale, migre e crie o seu usuário:
-
-```bash
-npm ci --omit=dev
-npm run migrar
-npm run criar-admin
-npm run testar-email -- voce@gmail.com    # confere o Gmail antes de confiar
-```
-
-### 7.5 Ligar a API como serviço
-
-```bash
-sudo cp /opt/otica/deploy/otica-api.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now otica-api
-
-systemctl status otica-api
-journalctl -u otica-api -f          # acompanhar os logs
-curl http://127.0.0.1:3333/api/health
-```
-
-O serviço reinicia sozinho se cair e volta junto com o servidor. Se o banco ainda
-estiver subindo, a API sai com erro e o systemd tenta de novo a cada 5 s.
-
-Os lembretes de consulta rodam **dentro desse serviço** — não precisa de cron do
-sistema. Confirme na primeira linha do log:
-
-```
-[lembretes] agendado: "0 8 * * *" (America/Sao_Paulo)
-```
-
-### 7.6 Compilar o site e configurar o Nginx
-
-```bash
-cd /opt/otica/frontend
-cp .env.example .env
-nano .env          # deixe VITE_API_URL= (vazio): site e API na mesma origem
-
-npm ci
-npm run build
-
-sudo mkdir -p /var/www/otica
-sudo rsync -a --delete dist/ /var/www/otica/
-sudo chown -R www-data:www-data /var/www/otica
-```
-
-> O Nginx serve `/var/www/otica`, que tem **só o site compilado**. Não aponte o `root`
-> para `/opt/otica/frontend`: aquela pasta guarda o código-fonte, o `node_modules` e o
-> `.env` do build — tudo isso ficaria acessível pela web.
-
-```bash
-sudo cp /opt/otica/deploy/nginx-otica.conf /etc/nginx/sites-available/otica
-sudo ln -s /etc/nginx/sites-available/otica /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t && sudo systemctl reload nginx
-
-curl -I http://localhost/                 # 200
-curl http://localhost/api/health          # {"ok":true,...}
-```
-
-### 7.7 Cloudflare Tunnel
-
-Com o tunnel você não abre porta nenhuma, não precisa de IP fixo e o HTTPS vem pronto
-da Cloudflare.
-
-```bash
-# instalar
-curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o /tmp/cloudflared.deb
-sudo dpkg -i /tmp/cloudflared.deb
-
-# autenticar (abre um link para você aprovar no navegador)
-cloudflared tunnel login
-
-# criar o tunnel e apontar o domínio para ele
-cloudflared tunnel create otica
-cloudflared tunnel route dns otica oticapopular.com.br
-cloudflared tunnel route dns otica www.oticapopular.com.br
-```
-
-Copie a configuração de exemplo e troque o id e os hostnames:
-
-```bash
-sudo mkdir -p /etc/cloudflared
-sudo cp /opt/otica/deploy/cloudflared-config.example.yml /etc/cloudflared/config.yml
-sudo nano /etc/cloudflared/config.yml
-```
-
-```yaml
-tunnel: <ID-DO-TUNEL>
-credentials-file: /etc/cloudflared/<ID-DO-TUNEL>.json
-
-ingress:
-  - hostname: oticapopular.com.br
-    service: http://localhost:80
-  - hostname: www.oticapopular.com.br
-    service: http://localhost:80
-  - service: http_status:404
-```
-
-O `tunnel create` salva o `.json` em `~/.cloudflared/`. Mova para `/etc/cloudflared/` e
-suba o serviço:
-
-```bash
-sudo cp ~/.cloudflared/<ID-DO-TUNEL>.json /etc/cloudflared/
-sudo cloudflared service install
-sudo systemctl enable --now cloudflared
-sudo systemctl status cloudflared
-```
-
-Na Cloudflare, deixe o modo SSL/TLS em **Full** e o proxy (nuvem laranja) ligado.
-
-**Ainda sem domínio?** Dá para testar antes de comprar:
-
-```bash
-cloudflared tunnel --url http://localhost:80
-```
-
-Ele imprime uma URL `*.trycloudflare.com` que funciona na hora. É temporária (morre
-quando você fecha o comando) e serve só para conferir se está tudo de pé — coloque essa
-URL em `API_PUBLIC_URL` e `CORS_ORIGINS` enquanto durar o teste.
-
-> Não publique o pgAdmin nem o Postgres pelo tunnel sem proteger com o Cloudflare
-> Access. Para administrar o banco, use o túnel SSH do passo 7.3.
-
-### 7.8 Publicar uma versão nova
-
-```bash
-cd /opt/otica
-sudo -u otica ./deploy/atualizar.sh
-```
-
-O script baixa o código, instala dependências, roda as migrações, compila o site,
-publica os arquivos, reinicia a API e confere o `/api/health` no fim.
-
-### 7.9 Backup
-
-O banco vive num volume do Docker e as fotos dos produtos em
-`/opt/otica/backend/uploads` — **as duas coisas precisam de backup**.
-
-```bash
-sudo /opt/otica/deploy/backup-banco.sh                    # na mão
-sudo crontab -e
-# 0 2 * * * /opt/otica/deploy/backup-banco.sh >> /var/log/otica-backup.log 2>&1
-```
-
-Guarda os últimos 14 dias em `/var/backups/otica`. Restaurar:
-
-```bash
-gunzip -c /var/backups/otica/otica-AAAAMMDD-HHMMSS.sql.gz | \
-  docker exec -i otica-postgres psql -U otica -d otica_popular
-```
-
-Leve uma cópia para fora do servidor de vez em quando (`rsync`, R2, S3) — backup que só
-existe na mesma máquina não é backup.
-
-### 7.10 Quando algo não sobe
-
-| Sintoma                              | Onde olhar                                              |
-| ------------------------------------ | ------------------------------------------------------- |
-| Site abre, painel dá "Failed to fetch" | `sudo systemctl status otica-api` e `journalctl -u otica-api -n 50` |
-| API não sobe                          | O banco está de pé? `docker ps` e `docker logs otica-postgres` |
-| `/admin` dá 404 ao recarregar         | Faltou o `try_files` do Nginx — confira o `sites-enabled` |
-| Foto do produto some                  | `API_PUBLIC_URL` diferente do domínio real no `backend/.env` |
-| Lembrete não chega                    | `journalctl -u otica-api -n 100` e `npm run testar-email` |
-| Domínio não abre                      | `sudo systemctl status cloudflared` e `cloudflared tunnel info otica` |
+Só o `cloudflared` fala com a internet. Nginx, API e banco ficam todos no `localhost` —
+**nenhuma porta precisa ser aberta no firewall**. Site e painel ficam na mesma origem do
+`/api`, então não existe CORS entre eles e o domínio não fica gravado dentro do
+JavaScript compilado.
+
+O Nginx escuta na **8080** porque a 80 é do painel do CasaOS. Como quem fala com ele é
+só o `cloudflared`, no próprio servidor, a porta escolhida é indiferente.
+
+Os arquivos usados no deploy ficam em `deploy/`:
+
+| Arquivo                          | O que é                                              |
+| -------------------------------- | ---------------------------------------------------- |
+| `DEPLOY.md`                      | O passo a passo                                       |
+| `otica-api.service`              | Serviço do systemd que roda a API                     |
+| `otica-sudoers`                  | Deixa o usuário `otica` reiniciar só a própria API     |
+| `nginx-otica.conf`               | Site do Nginx (porta 8080)                            |
+| `cloudflared-config.example.yml` | Modelo do `/etc/cloudflared/config.yml`               |
+| `atualizar.sh`                   | Publica uma versão nova                               |
+| `backup-banco.sh`                | Dump do Postgres + tar das fotos, com retenção de 14 dias |
 
 ---
 

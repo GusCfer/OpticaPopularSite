@@ -1,20 +1,20 @@
 # =====================================================================
-# Ajustes de produção do banco. Use SEMPRE junto com o arquivo principal:
+# Ajustes de produção. Use SEMPRE junto com o arquivo principal:
 #
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 #
-# O que muda: Postgres e pgAdmin passam a escutar SÓ em 127.0.0.1.
-# Continuam acessíveis para a API (que roda no mesmo servidor) e para
-# você via túnel SSH, mas somem da internet mesmo que o firewall falhe.
+# NÃO declare "ports" aqui. Ao juntar dois -f o Compose CONCATENA a lista
+# de portas em vez de substituir (a chave de unicidade é {ip, target,
+# published, protocol}), então um "127.0.0.1:5432:5432" aqui não trocaria
+# o "5432:5432" do arquivo base — somaria a ele. O container tentaria abrir
+# as duas e morreria com "address already in use" contra a própria
+# publicação anterior.
+#
+# Quem decide o bind é o docker-compose.yml, pelas variáveis do .env:
+#   POSTGRES_BIND_IP / PGADMIN_BIND_IP  (padrão 127.0.0.1)
 # =====================================================================
 services:
-  db:
-    ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
-
   pgadmin:
-    ports:
-      - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
     environment:
       # em produção o pgAdmin pede login de verdade
       PGADMIN_CONFIG_SERVER_MODE: "True"

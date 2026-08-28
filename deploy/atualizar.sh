@@ -2,7 +2,10 @@
 # =====================================================================
 # Publica uma versão nova no servidor.
 #
-#   cd /opt/otica && sudo -u otica ./deploy/atualizar.sh
+#   sudo -u otica -H /opt/otica/deploy/atualizar.sh
+#
+# O -H é obrigatório: sem ele o HOME continua sendo o de quem chamou o sudo,
+# o usuário otica não consegue escrever o cache do npm e o "npm ci" falha.
 #
 # Faz, nesta ordem: baixa o código, instala dependências, aplica as
 # migrações do banco, compila o site e reinicia a API.
@@ -34,11 +37,13 @@ npm ci
 npm run build
 
 echo "==> Publicando os arquivos do site"
-# --delete limpa os assets antigos, que têm hash no nome
-sudo rsync -a --delete "$RAIZ/frontend/dist/" "$WEBROOT/"
-sudo chown -R www-data:www-data "$WEBROOT"
+# --delete limpa os assets antigos, que têm hash no nome.
+# Sem sudo: /var/www/otica pertence ao usuário otica (o Nginx só precisa ler).
+rsync -a --delete "$RAIZ/frontend/dist/" "$WEBROOT/"
 
 echo "==> Reiniciando a API"
+# único comando que precisa de root — liberado sem senha em
+# /etc/sudoers.d/otica-api (veja deploy/otica-sudoers)
 sudo systemctl restart otica-api
 sleep 3
 

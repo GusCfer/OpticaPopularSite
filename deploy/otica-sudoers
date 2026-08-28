@@ -1,0 +1,14 @@
+# =====================================================================
+# Permite que o usuário "otica" reinicie a própria API sem senha.
+# É o único comando de root que o deploy/atualizar.sh precisa — os
+# arquivos do site vão para /var/www/otica, que pertence ao otica.
+#
+#   sudo cp deploy/otica-sudoers /etc/sudoers.d/otica-api
+#   sudo chmod 0440 /etc/sudoers.d/otica-api
+#   sudo visudo -c            # confere a sintaxe antes de confiar
+#
+# Um arquivo com erro de sintaxe em /etc/sudoers.d/ quebra o sudo do
+# servidor inteiro: rode o visudo -c acima antes de fechar a sessão SSH.
+# =====================================================================
+# os dois caminhos porque /bin é link para /usr/bin em umas distros e não em outras
+otica ALL=(root) NOPASSWD: /usr/bin/systemctl restart otica-api, /usr/bin/systemctl status otica-api, /bin/systemctl restart otica-api, /bin/systemctl status otica-api

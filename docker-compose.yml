@@ -9,7 +9,13 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-otica_popular}
       TZ: America/Sao_Paulo
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      # O IP do bind é variável porque a lista "ports" NÃO é substituída ao juntar
+      # dois -f: o Compose concatena, e a chave de unicidade inclui o IP. Publicar
+      # 0.0.0.0:5432 aqui e 127.0.0.1:5432 no arquivo de produção viraria duas
+      # publicações — o container tentaria as duas e falharia com "address already
+      # in use" contra ele mesmo. Padrão seguro; POSTGRES_BIND_IP=0.0.0.0 no .env
+      # abre para a rede se você precisar.
+      - "${POSTGRES_BIND_IP:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/initdb:/docker-entrypoint-initdb.d:ro
@@ -36,7 +42,7 @@ services:
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
       PGADMIN_LISTEN_PORT: 80
     ports:
-      - "${PGADMIN_PORT:-5050}:80"
+      - "${PGADMIN_BIND_IP:-127.0.0.1}:${PGADMIN_PORT:-5050}:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
       - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
