@@ -476,24 +476,6 @@
   gap: 16px;
 }
 
-@media (max-width: 720px) {
-  .campo-linha {
-    grid-template-columns: 1fr;
-  }
-
-  .painel__acoes {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .painel__filtros input {
-    min-width: 0;
-  }
-
-  .painel__acoes-dir {
-    justify-content: space-between;
-  }
-}
 
 /* ---------------------------- abas do painel ----------------------- */
 .painel__abas {
@@ -615,4 +597,585 @@
 
 .tabela td small {
   display: block;
+}
+
+/* ============================================================
+   Galeria de fotos do produto (até 8)
+   ============================================================ */
+
+.galeria {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.galeria__cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.galeria__contador {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.galeria__contador--cheio {
+  color: #8a5b12;
+}
+
+.galeria__grade {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 10px;
+}
+
+.galeria__item {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--cream);
+}
+
+.galeria__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* a primeira da lista é a que aparece na home e no catálogo */
+.galeria__capa {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(18, 13, 11, 0.82);
+  color: var(--cream);
+}
+
+.galeria__controles {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: rgba(18, 13, 11, 0.72);
+}
+
+.galeria__controles button {
+  flex: 1;
+  /* 34px de altura num alvo que ocupa um terço do cartão: dá para acertar com o polegar */
+  min-height: 34px;
+  border: none;
+  background: none;
+  color: var(--cream);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.galeria__controles button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.galeria__controles button:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.galeria__remover:not(:disabled):hover {
+  background: rgba(180, 40, 30, 0.65);
+}
+
+.galeria__vazio {
+  margin: 0;
+  padding: 18px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  background: var(--cream);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.galeria__acoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/*
+  O input some e o <label> vira o botão — assim dá para estilizar de verdade.
+  O seletor precisa das duas classes: `.campo input` (0,1,1) é mais específico
+  que `.galeria__input` (0,1,0) e vencia o width, deixando o input escondido
+  com a largura inteira do formulário e criando rolagem horizontal.
+  Continua focável pelo teclado: só é invisível, não display:none.
+*/
+.galeria .galeria__input {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.galeria__botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--white);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.galeria__botao:hover {
+  border-color: var(--brown-300);
+}
+
+.galeria .galeria__input:focus-visible + .galeria__botao {
+  outline: 2px solid var(--brown-300);
+  outline-offset: 2px;
+}
+
+.galeria__botao.is-off {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* "Tirar foto" só faz sentido onde existe câmera na mão: no desktop o mesmo
+   input abriria o seletor de arquivos e viraria um botão duplicado */
+@media (hover: hover) and (pointer: fine) {
+  .galeria__botao--camera,
+  .galeria__botao--camera + .galeria .galeria__input {
+    display: none;
+  }
+}
+
+.galeria__progresso {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.galeria__dica {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.galeria__erros {
+  margin: 0;
+  padding: 10px 12px 10px 28px;
+  border-radius: 10px;
+  background: #fdeceb;
+  color: #8c2019;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ============================================================
+   Mobile do painel
+   A tabela com min-width de 780px obrigava a rolar de lado para
+   ler uma linha inteira. Abaixo de 760px cada linha vira um
+   cartão, com o nome da coluna ao lado do valor.
+   ============================================================ */
+
+@media (max-width: 900px) {
+  .campo-linha {
+    grid-template-columns: 1fr;
+  }
+
+  .painel__acoes {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .painel__filtros input,
+  .painel__filtros--agenda input[type='search'],
+  .painel__filtros--agenda select {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .painel__acoes-dir {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 760px) {
+  .painel__topo {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .painel__marca img {
+    width: 72px;
+  }
+
+  .painel__marca div {
+    font-size: 14px;
+  }
+
+  .painel__usuario {
+    font-size: 13px;
+    gap: 12px;
+  }
+
+  /* as abas rolam de lado em vez de quebrar linha */
+  .painel__abas {
+    padding: 0 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .painel__abas::-webkit-scrollbar {
+    display: none;
+  }
+
+  .aba {
+    flex: 0 0 auto;
+    padding: 12px 14px;
+    font-size: 13.5px;
+  }
+
+  .painel__conteudo {
+    padding: 18px 16px 56px;
+    gap: 14px;
+  }
+
+  .painel__form {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+
+  /* 16px evita o zoom automático do Safari ao focar um campo */
+  .campo input,
+  .campo select,
+  .campo textarea,
+  .painel__filtros input,
+  .painel__filtros select,
+  .filtro-data input {
+    font-size: 16px;
+  }
+
+  .painel__form-acoes {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .painel__form-acoes .btn {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .filtro-data {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+
+  /* ---- tabela vira lista de cartões ---- */
+  .tabela-wrap {
+    background: none;
+    border: none;
+    border-radius: 0;
+    overflow-x: visible;
+  }
+
+  .tabela--cartoes,
+  .tabela--lista {
+    min-width: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+  }
+
+  /*
+    display:none, e não uma técnica de "esconder visualmente": dentro de uma
+    tabela os <th> ignoram position:absolute e continuavam empurrando a largura,
+    criando 33px de rolagem horizontal. Como as linhas já deixaram de ser tabela
+    (display:block), o cabeçalho não teria função — quem nomeia cada valor é o
+    data-rotulo da própria célula.
+  */
+  .tabela--cartoes thead,
+  .tabela--lista thead {
+    display: none;
+  }
+
+  .tabela--cartoes tbody,
+  .tabela--cartoes tr,
+  .tabela--cartoes td,
+  .tabela--lista tbody,
+  .tabela--lista tr,
+  .tabela--lista td {
+    display: block;
+  }
+
+  .tabela--cartoes tr,
+  .tabela--lista tr {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+
+  /*
+    Rótulo posicionado, e não em grid/flex: qualquer um dos dois faria de CADA
+    filho da célula um item próprio, e a marca ("Ray-Ban") ou o preço
+    promocional cairiam soltos na coluna do rótulo. Com padding + absolute a
+    célula segue sendo um bloco comum: o conteúdo flui e quebra alinhado.
+  */
+  .tabela--cartoes td {
+    display: block;
+    position: relative;
+    min-height: 24px;
+    padding: 5px 0 5px 100px;
+    border: none;
+  }
+
+  .tabela--cartoes td::before {
+    content: attr(data-rotulo);
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 92px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    color: var(--text-muted);
+  }
+
+  /* a foto abre o cartão, em largura cheia e sem rótulo */
+  .tabela--cartoes td[data-rotulo='Foto'] {
+    padding: 0 0 8px;
+    min-height: 0;
+  }
+
+  .tabela--cartoes td[data-rotulo='Foto']::before {
+    display: none;
+  }
+
+  .tabela--cartoes .miniatura {
+    width: 100%;
+    height: 148px;
+    border-radius: 12px;
+  }
+
+  .tabela--cartoes .miniatura img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ações no rodapé do cartão, lado a lado e com alvo de toque decente */
+  .tabela--cartoes td.acoes {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 10px 0 0;
+    min-height: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .tabela--cartoes td.acoes::before {
+    display: none;
+  }
+
+  .tabela--cartoes td.acoes .botao-link {
+    flex: 1;
+    min-height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .tabela--cartoes .acoes .botao-link + .botao-link {
+    margin-left: 0;
+  }
+
+  .tabela--cartoes .estrela {
+    font-size: 24px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .linha--inativa {
+    opacity: 1;
+    border-style: dashed;
+  }
+
+  .galeria__grade {
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    gap: 8px;
+  }
+
+  .galeria__acoes .galeria__botao {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+/* ============================================================
+   Lista compacta de produtos (celular)
+
+   O cartão com foto grande e um rótulo por campo era ótimo para
+   ler UM produto e péssimo para percorrer trinta: cada item
+   ocupava quase meia tela. Aqui a linha vira uma grade fixa com
+   miniatura à esquerda, e os rótulos somem — nome, categoria,
+   preço, etiqueta de status e estrela se distinguem sozinhos.
+   ============================================================ */
+
+@media (max-width: 760px) {
+  .tabela--lista tr {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'foto nome      destaque'
+      'foto categoria categoria'
+      'foto preco     status'
+      'acoes acoes    acoes';
+    align-items: center;
+    gap: 1px 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+  }
+
+  /* sem rótulo: cada valor já se identifica pela forma */
+  .tabela--lista td::before {
+    display: none;
+  }
+
+  /* a borda inferior vem da tabela do desktop e aqui virava risco solto
+     no meio do cartão, um por célula */
+  .tabela--lista td {
+    padding: 0;
+    min-height: 0;
+    border: none;
+  }
+
+  .tabela--lista td[data-rotulo='Foto'] {
+    grid-area: foto;
+    align-self: start;
+  }
+
+  .tabela--lista .miniatura {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+  }
+
+  .tabela--lista td[data-rotulo='Produto'] {
+    grid-area: nome;
+    font-size: 14.5px;
+    line-height: 1.25;
+  }
+
+  .tabela--lista td[data-rotulo='Produto'] small {
+    font-size: 12px;
+  }
+
+  .tabela--lista td[data-rotulo='Categoria'] {
+    grid-area: categoria;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .tabela--lista td[data-rotulo='Preço'] {
+    grid-area: preco;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .tabela--lista td[data-rotulo='Preço'] s {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .tabela--lista td[data-rotulo='Status'] {
+    grid-area: status;
+    justify-self: end;
+  }
+
+  .tabela--lista .pill {
+    font-size: 10.5px;
+    padding: 3px 9px;
+  }
+
+  .tabela--lista td[data-rotulo='Destaque'] {
+    grid-area: destaque;
+    justify-self: end;
+  }
+
+  .tabela--lista .estrela {
+    font-size: 22px;
+    min-width: 40px;
+    min-height: 40px;
+    margin: -8px -6px -8px 0;
+  }
+
+  .tabela--lista td.acoes {
+    grid-area: acoes;
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .tabela--lista td.acoes .botao-link {
+    flex: 1;
+    min-height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    text-align: center;
+    font-size: 12.5px;
+    text-decoration: none;
+  }
+
+  .tabela--lista .linha--inativa {
+    border-style: dashed;
+  }
+}
+
+.painel__contagem {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }

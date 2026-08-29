@@ -15,9 +15,9 @@ function Footer() {
         </div>
 
         <nav className="footer__nav">
-          <a href="#diferenciais">Diferenciais</a>
-          <a href="#depoimentos">Depoimentos</a>
-          <a href="#contato">Contato</a>
+          <a href="/produtos">Produtos</a>
+          <a href="/#diferenciais">Diferenciais</a>
+          <a href="/#contato">Visite a loja</a>
         </nav>
       </div>
 

@@ -78,6 +78,23 @@
   border-radius: 999px;
 }
 
+/* Contador de fotos: só aparece quando há mais de uma para ver.
+   Embaixo à esquerda, e não no topo: lá em cima ele encostava na etiqueta de
+   categoria assim que o nome era comprido ("Óculos de grau"). */
+.produto-card__fotos {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(18, 13, 11, 0.78);
+  color: var(--cream);
+  font-variant-numeric: tabular-nums;
+}
+
 /* lupa que aparece no hover, avisando que dá pra ampliar */
 .produto-card__lupa {
   position: absolute;
@@ -193,6 +210,13 @@
     bottom: 7px;
     width: 28px;
     height: 28px;
+  }
+
+  .produto-card__fotos {
+    left: 7px;
+    bottom: 7px;
+    font-size: 9.5px;
+    padding: 3px 7px;
   }
 
   .produto-card__corpo {

@@ -41,6 +41,11 @@ echo "==> Publicando os arquivos do site"
 # Sem sudo: /var/www/otica pertence ao usuário otica (o Nginx só precisa ler).
 rsync -a --delete "$RAIZ/frontend/dist/" "$WEBROOT/"
 
+# O Nginx roda como www-data. Os arquivos que o Vite GERA nascem 0644, mas os de
+# public/ são COPIADOS preservando o modo — se vierem 0700, o Nginx responde 403
+# neles (favicon, manifest) e serve o resto normalmente.
+chmod -R a+rX "$WEBROOT"
+
 echo "==> Reiniciando a API"
 # único comando que precisa de root — liberado sem senha em
 # /etc/sudoers.d/otica-api (veja deploy/otica-sudoers)

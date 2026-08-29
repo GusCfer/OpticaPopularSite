@@ -27,8 +27,13 @@ MODO_EXECUTAVEL = 0o755   # scripts .sh
 MODO_DIR = 0o755
 
 
+EXECUTAVEIS = {'deploy/otica-publicar'}
+
+
 def modo_de(rel):
-    return MODO_EXECUTAVEL if rel.endswith('.sh') else MODO_ARQUIVO
+    if rel.endswith('.sh') or rel in EXECUTAVEIS:
+        return MODO_EXECUTAVEL
+    return MODO_ARQUIVO
 
 
 def main():

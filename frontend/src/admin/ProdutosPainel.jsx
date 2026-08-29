@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api, formatarPreco, MAX_DESTAQUES } from '../services/api'
+import Paginacao from '../components/Paginacao'
 import ProdutoForm from './ProdutoForm'
+
+const POR_PAGINA = 12
 
 function ProdutosPainel() {
   // null enquanto a primeira carga não terminou.
@@ -9,6 +12,7 @@ function ProdutosPainel() {
   const [aviso, setAviso] = useState('')
   const [filtroCategoria, setFiltroCategoria] = useState('')
   const [busca, setBusca] = useState('')
+  const [pagina, setPagina] = useState(1)
   const [versao, setVersao] = useState(0) // incrementar força um recarregamento
   const [editando, setEditando] = useState(null) // null = fechado, 'novo' ou objeto produto
 
@@ -18,11 +22,11 @@ function ProdutosPainel() {
     let ativo = true
 
     Promise.all([
-      api.produtosAdmin({ categoria: filtroCategoria, busca, limite: 200 }),
+      api.produtosAdmin({ categoria: filtroCategoria, busca, pagina, porPagina: POR_PAGINA }),
       api.categorias(),
     ])
-      .then(([lista, cats]) => {
-        if (ativo) setDados({ produtos: lista, categorias: cats })
+      .then(([resposta, cats]) => {
+        if (ativo) setDados({ ...resposta, categorias: cats })
       })
       .catch((err) => {
         if (ativo) setErro(err.message || 'Falha ao carregar os produtos')
@@ -31,13 +35,25 @@ function ProdutosPainel() {
     return () => {
       ativo = false
     }
-  }, [filtroCategoria, busca, versao])
+  }, [filtroCategoria, busca, pagina, versao])
+
+  /**
+   * Trocar filtro sempre volta para a primeira página: filtrar com a página 3
+   * aberta mostraria "nenhum resultado" sem motivo nenhum.
+   */
+  function filtrarPor(campo, valor) {
+    if (campo === 'busca') setBusca(valor)
+    else setFiltroCategoria(valor)
+    setPagina(1)
+  }
 
   const carregando = dados === null
-  const produtos = useMemo(() => dados?.produtos ?? [], [dados])
+  const produtos = useMemo(() => dados?.itens ?? [], [dados])
   const categorias = dados?.categorias ?? []
+  const total = dados?.total ?? 0
 
-  const destaquesUsados = useMemo(() => produtos.filter((p) => p.destaque).length, [produtos])
+  // vem do servidor: contar só a página aberta faria o "3/5" mentir ao paginar
+  const destaquesUsados = dados?.destaquesUsados ?? 0
 
   function mostrarAviso(texto) {
     setAviso(texto)
@@ -50,7 +66,8 @@ function ProdutosPainel() {
       const atualizado = await api.definirDestaque(produto.id, !produto.destaque)
       setDados((atual) => ({
         ...atual,
-        produtos: atual.produtos.map((p) => (p.id === atualizado.id ? atualizado : p)),
+        itens: atual.itens.map((p) => (p.id === atualizado.id ? atualizado : p)),
+        destaquesUsados: atual.destaquesUsados + (atualizado.destaque ? 1 : -1),
       }))
     } catch (err) {
       setErro(err.message)
@@ -62,11 +79,10 @@ function ProdutosPainel() {
     setErro('')
     try {
       await api.excluirProduto(produto.id)
-      setDados((atual) => ({
-        ...atual,
-        produtos: atual.produtos.filter((p) => p.id !== produto.id),
-      }))
       mostrarAviso('Produto excluído.')
+      // recarrega em vez de remover na mão: a página precisa ser recomposta
+      // com um item vindo da página seguinte
+      recarregar()
     } catch (err) {
       setErro(err.message)
     }
@@ -86,9 +102,9 @@ function ProdutosPainel() {
           type="search"
           placeholder="Buscar por nome ou marca…"
           value={busca}
-          onChange={(e) => setBusca(e.target.value)}
+          onChange={(e) => filtrarPor('busca', e.target.value)}
         />
-        <select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)}>
+        <select value={filtroCategoria} onChange={(e) => filtrarPor('categoria', e.target.value)}>
           <option value="">Todas as categorias</option>
           {categorias.map((c) => (
             <option key={c.id} value={c.slug}>
@@ -133,7 +149,7 @@ function ProdutosPainel() {
       </div>
     ) : (
       <div className="tabela-wrap">
-        <table className="tabela">
+        <table className="tabela tabela--lista">
           <thead>
             <tr>
               <th>Foto</th>
@@ -148,7 +164,7 @@ function ProdutosPainel() {
           <tbody>
             {produtos.map((produto) => (
               <tr key={produto.id} className={produto.ativo ? '' : 'linha--inativa'}>
-                <td>
+                <td data-rotulo="Foto">
                   <div className="miniatura">
                     {produto.imagemUrl ? (
                       <img src={produto.imagemUrl} alt="" />
@@ -157,12 +173,12 @@ function ProdutosPainel() {
                     )}
                   </div>
                 </td>
-                <td>
+                <td data-rotulo="Produto">
                   <strong>{produto.nome}</strong>
                   {produto.marca && <small>{produto.marca}</small>}
                 </td>
-                <td>{produto.categoria?.nome}</td>
-                <td>
+                <td data-rotulo="Categoria">{produto.categoria?.nome}</td>
+                <td data-rotulo="Preço">
                   {produto.precoPromocional ? (
                     <>
                       <s>{formatarPreco(produto.preco)}</s>{' '}
@@ -172,12 +188,12 @@ function ProdutosPainel() {
                     formatarPreco(produto.preco)
                   )}
                 </td>
-                <td>
+                <td data-rotulo="Status">
                   <span className={`pill ${produto.ativo ? 'pill--ok' : 'pill--off'}`}>
                     {produto.ativo ? 'Ativo' : 'Inativo'}
                   </span>
                 </td>
-                <td>
+                <td data-rotulo="Destaque">
                   <button
                     type="button"
                     className={`estrela ${produto.destaque ? 'estrela--on' : ''}`}
@@ -206,6 +222,18 @@ function ProdutosPainel() {
             ))}
           </tbody>
         </table>
+
+        <p className="painel__contagem">
+          {total} {total === 1 ? 'produto' : 'produtos'}
+          {dados.paginas > 1 && ` — página ${dados.pagina} de ${dados.paginas}`}
+        </p>
+
+        <Paginacao
+          pagina={dados.pagina}
+          paginas={dados.paginas}
+          aoTrocar={setPagina}
+          rotulo="Páginas do catálogo"
+        />
       </div>
     )}
     </>

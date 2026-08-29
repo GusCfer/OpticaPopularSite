@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { api, MAX_DESTAQUES } from '../services/api'
+import GaleriaImagens from './GaleriaImagens'
 
 const VAZIO = {
   nome: '',
@@ -10,7 +11,7 @@ const VAZIO = {
   categoriaId: '',
   ativo: true,
   destaque: false,
-  imagemUrl: '',
+  imagens: [],
 }
 
 function estadoInicial(produto) {
@@ -24,7 +25,8 @@ function estadoInicial(produto) {
     categoriaId: produto.categoriaId || '',
     ativo: produto.ativo ?? true,
     destaque: produto.destaque ?? false,
-    imagemUrl: produto.imagemUrl || '',
+    // produto antigo, de antes da galeria, tinha só imagemUrl
+    imagens: produto.imagens?.length ? produto.imagens : produto.imagemUrl ? [produto.imagemUrl] : [],
   }
 }
 
@@ -32,12 +34,9 @@ function estadoInicial(produto) {
 // e o estado inicial abaixo já vem certo — sem useEffect de sincronização.
 function ProdutoForm({ produto, categorias, destaquesUsados, aoSalvar, aoCancelar }) {
   const [form, setForm] = useState(() => estadoInicial(produto))
-  const [previa, setPrevia] = useState(() => produto?.imagemUrl || '')
   const [erro, setErro] = useState('')
   const [detalhes, setDetalhes] = useState([])
   const [salvando, setSalvando] = useState(false)
-  const [enviandoImagem, setEnviandoImagem] = useState(false)
-  const inputArquivo = useRef(null)
 
   // Já está no limite e este produto ainda não é destaque? O check trava.
   const jaEraDestaque = produto?.destaque === true
@@ -45,24 +44,6 @@ function ProdutoForm({ produto, categorias, destaquesUsados, aoSalvar, aoCancela
 
   function alterar(campo, valor) {
     setForm((atual) => ({ ...atual, [campo]: valor }))
-  }
-
-  async function aoEscolherImagem(evento) {
-    const arquivo = evento.target.files?.[0]
-    if (!arquivo) return
-
-    setErro('')
-    setEnviandoImagem(true)
-    try {
-      const { url } = await api.enviarImagem(arquivo)
-      alterar('imagemUrl', url)
-      setPrevia(url)
-    } catch (err) {
-      setErro(err.message || 'Falha ao enviar a imagem')
-    } finally {
-      setEnviandoImagem(false)
-      if (inputArquivo.current) inputArquivo.current.value = ''
-    }
   }
 
   async function enviar(evento) {
@@ -180,35 +161,11 @@ function ProdutoForm({ produto, categorias, destaquesUsados, aoSalvar, aoCancela
       </label>
 
       <div className="campo">
-        <span>Imagem</span>
-        <div className="upload">
-          <div className="upload__previa">
-            {previa ? <img src={previa} alt="Prévia" /> : <span>Sem imagem</span>}
-          </div>
-          <div className="upload__acoes">
-            <input
-              ref={inputArquivo}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/avif"
-              onChange={aoEscolherImagem}
-              disabled={enviandoImagem}
-            />
-            <small>JPG, PNG, WEBP ou AVIF — até 5 MB.</small>
-            {enviandoImagem && <small>Enviando…</small>}
-            {previa && (
-              <button
-                type="button"
-                className="botao-link"
-                onClick={() => {
-                  alterar('imagemUrl', '')
-                  setPrevia('')
-                }}
-              >
-                Remover imagem
-              </button>
-            )}
-          </div>
-        </div>
+        <GaleriaImagens
+          imagens={form.imagens}
+          aoMudar={(lista) => alterar('imagens', lista)}
+          desabilitado={salvando}
+        />
       </div>
 
       <div className="campo-checks">
@@ -236,7 +193,7 @@ function ProdutoForm({ produto, categorias, destaquesUsados, aoSalvar, aoCancela
       </div>
 
       <div className="painel__form-acoes">
-        <button type="submit" className="btn btn-dark" disabled={salvando || enviandoImagem}>
+        <button type="submit" className="btn btn-dark" disabled={salvando}>
           {salvando ? 'Salvando…' : produto ? 'Salvar alterações' : 'Cadastrar produto'}
         </button>
         <button type="button" className="botao-link" onClick={aoCancelar}>

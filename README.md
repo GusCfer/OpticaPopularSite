@@ -103,6 +103,16 @@ Painel: **http://localhost:5173/admin**
 `ON DELETE RESTRICT` (não dá para apagar uma categoria que tem produto) e
 `ON UPDATE CASCADE`.
 
+**`produto_imagens`** — a galeria: até **8 fotos por produto**, com `ordem` definindo a
+sequência do carrossel. O limite não depende do código: `UNIQUE (produto_id, ordem)` mais
+`CHECK (ordem >= 0 AND ordem < 8)` já tornam a nona linha impossível.
+
+`produtos.imagem_url` continua existindo e virou a **capa** — a foto de menor ordem, mantida
+em dia pela trigger `trg_sync_capa_produto`. Por isso a home, o catálogo e os destaques não
+precisaram de nenhuma mudança de SQL, e mexer na galeria pelo pgAdmin também acerta a capa.
+Apagar o produto leva as imagens junto (`ON DELETE CASCADE`), e o backend apaga os arquivos
+do disco.
+
 **`usuarios`** — acesso ao painel. Guarda só o **hash bcrypt** da senha, nunca o texto.
 
 **`consultas`** — agendamentos. `data_hora` é `TIMESTAMP` **sem fuso**: é sempre o
@@ -252,7 +262,18 @@ O que já está implementado:
 
 ## 5. Imagens dos produtos
 
-Hoje ficam em `backend/uploads/produtos/`, servidas pela própria API em
+Cada produto aceita **até 8 fotos**. No painel elas são escolhidas pelo arquivo ou tiradas
+na hora pela câmera do celular (`<input capture>`, que abre o app de câmera do aparelho), e
+o próprio navegador reduz cada uma para 1600px em WebP **antes** de enviar: uma foto de 5 MB
+vira uns 200 KB. Isso poupa o 4G da loja, o disco do servidor e o tempo de quem abre o site —
+e, de quebra, o recorte no canvas descarta o EXIF, então a localização GPS da foto não vai
+parar num arquivo público.
+
+No site, clicar em qualquer produto abre o carrossel: arrasta para trocar de foto, mostra
+"Foto 2 de 8", tem miniaturas e zoom por toque (ou clique, no desktop). O carrossel é CSS
+puro — `scroll-snap` —, sem biblioteca: a funcionalidade inteira custou cerca de 2 KB gzip.
+
+Os arquivos ficam em `backend/uploads/produtos/`, servidos pela própria API em
 `/uploads/produtos/<arquivo>`. O banco guarda só o caminho relativo.
 
 **Para migrar pra nuvem depois** (S3, Cloudinary, etc.), só dois arquivos mudam:
@@ -274,10 +295,19 @@ Como o banco guarda o caminho e a URL absoluta é montada na resposta
 | GET    | `/api/health`              | Ping                                          |
 | GET    | `/api/categorias`          | Categorias + quantos produtos cada uma tem    |
 | GET    | `/api/produtos/destaques`  | Os até 5 destaques ativos (usado na home)     |
-| GET    | `/api/produtos`            | Catálogo. Filtros: `?categoria=solar&busca=aviador` |
+| GET    | `/api/produtos`            | Catálogo **paginado**: `?categoria=solar&busca=aviador&pagina=2&porPagina=12` |
 | GET    | `/api/produtos/:id`        | Um produto                                    |
 
 Sem token, `/api/produtos` devolve **só produtos ativos**.
+
+`/api/produtos` responde `{ itens, total, pagina, porPagina, paginas }` — um objeto, não um
+array, porque a navegação de páginas precisa saber quantos existem no total. Página fora do
+intervalo devolve a última em vez de uma tela vazia, e `porPagina` é limitado a 60. Com token,
+vem também `destaquesUsados`, contado no catálogo inteiro e não só na página aberta.
+
+Todo produto vem com `imagens: []` — a galeria em ordem, já com URL absoluta — e
+`imagemUrl`, que é a primeira delas. Para gravar, mande `imagens` no POST/PUT do produto; um
+request antigo que mande só `imagemUrl` continua funcionando e vira uma galeria de uma foto.
 
 ### Autenticação
 
@@ -293,7 +323,7 @@ Sem token, `/api/produtos` devolve **só produtos ativos**.
 
 | Método | Rota                            | O que faz                          |
 | ------ | ------------------------------- | ---------------------------------- |
-| POST   | `/api/upload`                   | Envia a imagem → `{ caminho, url }` |
+| POST   | `/api/upload`                   | Envia até 8 imagens → `{ imagens: [{ caminho, url }] }` |
 | POST   | `/api/produtos`                 | Cadastra                            |
 | PUT    | `/api/produtos/:id`             | Atualiza                            |
 | PATCH  | `/api/produtos/:id/destaque`    | `{ destaque: true/false }`          |
@@ -356,11 +386,27 @@ Os arquivos usados no deploy ficam em `deploy/`:
 
 ---
 
+## 7.11 A seção "Visite a loja"
+
+Substituiu os depoimentos (texto genérico que não dizia nada sobre a loja) e absorveu a
+seção de contato, que tinha um formulário sem destino nenhum. Mantém a âncora `#contato`.
+
+Mostra se a loja está **aberta agora**, calculado no navegador e recalculado a cada minuto,
+mais a semana inteira com o dia de hoje destacado, endereço com link para o mapa, WhatsApp e
+telefone clicável.
+
+A regra que justifica o cálculo está em `frontend/src/lib/horarios.js`: **o 1º e o 2º sábado
+do mês abrem 9h às 17h, os demais 8h às 12h**. Escrita numa linha corrida, ninguém decifra;
+o site passa a responder por quem perguntaria no WhatsApp. Se esse horário mudar, é só esse
+arquivo que se mexe — as constantes ficam no topo dele.
+
+---
+
 ## 8. Páginas do site
 
 | Rota                        | O que é                                                     |
 | --------------------------- | ----------------------------------------------------------- |
-| `/`                         | Home — hero, destaques (até 5), diferenciais, depoimentos, contato |
+| `/`                         | Home — hero, destaques (até 5), diferenciais, **Visite a loja** |
 | `/produtos`                 | Catálogo completo, com filtro por categoria e busca          |
 | `/produtos?categoria=solar` | Catálogo já filtrado (o link é compartilhável)               |
 | `/admin/login`              | Login do painel                                              |

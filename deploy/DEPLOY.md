@@ -633,23 +633,42 @@ corrija no `backend/.env` e rode `sudo systemctl restart otica-api`.
 
 ## Etapa 11 — Publicar uma versão nova depois
 
-Gere um zip novo na sua máquina, envie pelo CasaOS e:
+Só na primeira vez, instale o comando de publicação:
 
 ```bash
-unzip -q /DATA/otica-servidor.zip -d /tmp/otica-upload
-sudo rsync -a /tmp/otica-upload/OticaPopularSap/ /opt/otica/
-sudo chown -R otica:otica /opt/otica
-sudo chmod -R a+rX /opt/otica/docker
-sudo chmod +x /opt/otica/deploy/*.sh
-sudo chmod 600 /opt/otica/.env /opt/otica/backend/.env /opt/otica/frontend/.env
-rm -rf /tmp/otica-upload
-
-sudo -u otica -H /opt/otica/deploy/atualizar.sh
+sudo cp /opt/otica/deploy/otica-publicar /usr/local/bin/otica-publicar
+sudo chmod +x /usr/local/bin/otica-publicar
 ```
 
-O `rsync` **não apaga** os `.env` — eles não estão no zip, então continuam como você
-deixou. O `-H` continua sendo necessário aqui: o script roda `npm ci` por dentro. O `atualizar.sh` instala as dependências, roda as migrações, compila o site,
+Daí em diante, cada atualização são três passos:
+
+1. Na sua máquina, na raiz do projeto: `python gerar-zip.py`
+2. Envie `_entrega\otica-servidor.zip` pelo app **Files** do CasaOS, para `/DATA`
+3. No servidor:
+
+```bash
+sudo otica-publicar
+```
+
+Ele faz backup do banco, descompacta, copia para `/opt/otica`, arruma as permissões e
+chama o `atualizar.sh` — que instala dependências, **aplica as migrações**, compila o site,
 publica os arquivos, reinicia a API e confere o `/api/health` no fim.
+
+> O `otica-publicar` mora em `/usr/local/bin` de propósito. Dentro de `/opt/otica` ele seria
+> sobrescrito pelo `rsync` durante a própria execução — o bash lê o script em pedaços, e
+> trocá-lo no meio quebra a execução de formas difíceis de diagnosticar.
+
+### O que ele NÃO faz
+
+| Situação | O que você precisa fazer na mão |
+| -------- | ------------------------------- |
+| A versão nova precisa de uma variável nova no `.env` | Adicionar no `.env` do servidor — ele não está no zip e por isso nunca é sobrescrito |
+| Você apagou um arquivo do projeto | O `rsync` roda sem `--delete`, então o arquivo continua lá. Apague à mão se for um `.sql` de `docker/initdb/`, que seria reaplicado |
+| A migração nova não é idempotente | O `migrar` roda **todos** os `NN-*.sql` de `03` em diante, sempre. Escreva com `IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP ... IF EXISTS` |
+| Mudou o `docker-compose.yml` | `cd /opt/otica && sudo -u otica docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d` |
+
+A API fica fora do ar por poucos segundos no restart. Para uma loja desse porte não
+compensa complicar com deploy sem downtime.
 
 ---
 
@@ -658,18 +677,36 @@ publica os arquivos, reinicia a API e confere o `/api/health` no fim.
 O banco vive num volume do Docker e as fotos dos produtos em
 `/opt/otica/backend/uploads` — **as duas coisas precisam de backup**.
 
-```bash
-sudo /opt/otica/deploy/backup-banco.sh              # testar na mão
+Primeiro rode uma vez na mão, para ver que funciona:
 
-sudo crontab -e
-# cole no fim, para rodar todo dia às 2h:
-0 2 * * * /opt/otica/deploy/backup-banco.sh >> /var/log/otica-backup.log 2>&1
+```bash
+sudo /opt/otica/deploy/backup-banco.sh
+ls -lh /var/backups/otica/
 ```
 
-Guarda os últimos 14 dias em `/var/backups/otica`. Restaurar:
+Depois agende para todo dia às 2h. A linha do cron **não é um comando de terminal** — ela
+mora dentro do crontab. Este comando a insere sem abrir editor nenhum:
 
 ```bash
-gunzip -c /var/backups/otica/otica-AAAAMMDD-HHMMSS.sql.gz \
+( sudo crontab -l 2>/dev/null; \
+  echo '0 2 * * * /opt/otica/deploy/backup-banco.sh >> /var/log/otica-backup.log 2>&1' \
+) | sudo crontab -
+
+sudo crontab -l          # confira que a linha está lá
+```
+
+Guarda os últimos 14 dias em `/var/backups/otica`.
+
+### Restaurar
+
+Só em emergência. Veja os arquivos que existem e use o nome **real** — `AAAAMMDD-HHMMSS`
+abaixo é só o formato, não um nome de arquivo:
+
+```bash
+ls -1 /var/backups/otica/
+
+# troque pelo nome que apareceu acima
+gunzip -c /var/backups/otica/otica-20260828-020000.sql.gz \
   | docker exec -i otica-postgres psql -U otica -d otica_popular
 ```
 
@@ -679,16 +716,60 @@ máquina não é backup. Como o CasaOS já enxerga o disco, dá para mandar a pa
 
 ---
 
-## Etapa 13 — Administrar o banco
+## Etapa 13 — Administrar o banco pelo pgAdmin
 
-O pgAdmin fica preso no `127.0.0.1:5050`. Para abrir, faça um túnel SSH da sua máquina:
+O pgAdmin fica preso em `127.0.0.1:5050`, então não abre pela rede. Você chega nele por um
+túnel SSH — que roda **na sua máquina**, não no servidor.
+
+Descubra o endereço do servidor (uma vez):
 
 ```bash
-ssh -L 5050:localhost:5050 usuario@servidor
+# NO SERVIDOR
+tailscale ip -4
 ```
 
-E acesse `http://localhost:5050` no navegador. **Não publique o pgAdmin nem o Postgres
-pelo tunnel** sem proteger com o Cloudflare Access.
+E abra o túnel no **PowerShell do Windows**, trocando pelo IP que apareceu:
+
+```powershell
+ssh -L 5050:localhost:5050 admincarvalho@100.x.y.z
+```
+
+Com essa janela aberta, acesse `http://localhost:5050` no navegador do PC. Fechando a
+janela, o acesso morre junto.
+
+> Não publique o pgAdmin nem o Postgres pelo Cloudflare Tunnel sem proteger com o
+> Cloudflare Access. O túnel SSH acima já resolve o uso do dia a dia.
+
+### Acessar sem túnel, pela tailnet
+
+Se você usa Tailscale e prefere não abrir um túnel toda vez, faça o pgAdmin escutar
+**direto no IP da tailnet**:
+
+```bash
+TSIP=$(tailscale ip -4); echo "$TSIP"
+
+grep -q '^PGADMIN_BIND_IP=' /opt/otica/.env \
+  && sudo -u otica sed -i "s|^PGADMIN_BIND_IP=.*|PGADMIN_BIND_IP=$TSIP|" /opt/otica/.env \
+  || echo "PGADMIN_BIND_IP=$TSIP" | sudo -u otica tee -a /opt/otica/.env
+
+cd /opt/otica
+sudo -u otica docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker port otica-pgadmin        # tem que mostrar 100.x.y.z:5050
+```
+
+E acesse `http://100.x.y.z:5050`. O pgAdmin em produção continua pedindo login.
+
+> **Por que o IP e não `0.0.0.0` + regra de firewall.** O ufw **não bloqueia portas
+> publicadas pelo Docker**: o Docker insere as próprias regras de iptables na cadeia
+> `FORWARD`, e o tráfego para um container é roteado, não passa pela `INPUT` onde o ufw
+> age. Um `ufw allow in on tailscale0 to any port 5050` seria puramente decorativo. Com o
+> bind no IP da tailnet, o container simplesmente não escuta em mais lugar nenhum — não
+> depende de firewall. Para o Nginx, que é processo do host e não container, as regras do
+> ufw valem normalmente.
+
+> Efeito colateral: se o `tailscale0` ainda não estiver de pé quando o Docker subir o
+> container, o bind falha. O `restart: unless-stopped` tenta de novo até dar certo — mas
+> depois de um reboot vale conferir com `docker ps` e `docker port otica-pgadmin`.
 
 ---
 
@@ -701,6 +782,8 @@ pelo tunnel** sem proteger com o Cloudflare Access.
 | `address already in use` na 5432          | Veja "Se der address already in use na 5432", na etapa 4           |
 | `password authentication failed`          | Veja "Se der password authentication failed", na etapa 5           |
 | `relation "usuarios" does not exist`      | O initdb não leu `docker/initdb/`: `sudo chmod -R a+rX /opt/otica/docker` e recrie o volume |
+| Favicon (ou outro arquivo de `public/`) dá 403 | Arquivo copiado com modo `0700`: `sudo chmod -R a+rX /var/www/otica /opt/otica/frontend/public` |
+| Porta de container aberta apesar do `ufw` | O ufw não vale para porta publicada pelo Docker. Restrinja pelo bind (`*_BIND_IP` no `.env`), não por regra de firewall |
 | API não sobe                              | O banco está de pé? `docker ps` e `docker logs otica-postgres`     |
 | API sobe e cai em loop                    | `journalctl -u otica-api -n 50` — quase sempre `DATABASE_URL` ou `JWT_SECRET` |
 | `/admin` dá 404 ao recarregar             | Faltou o `try_files` do Nginx — confira o `sites-enabled/otica`    |

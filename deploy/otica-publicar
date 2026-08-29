@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# =====================================================================
+# Publica uma versão nova a partir do zip enviado pelo CasaOS.
+#
+#   sudo otica-publicar                       # usa /DATA/otica-servidor.zip
+#   sudo otica-publicar /caminho/outro.zip
+#
+# Faz, nesta ordem: backup do banco, descompacta, copia para /opt/otica,
+# arruma as permissões e chama o deploy/atualizar.sh (que instala
+# dependências, aplica migrações, compila o site, publica e reinicia a API).
+#
+# Mora em /usr/local/bin de propósito: se ficasse dentro de /opt/otica, o
+# rsync o sobrescreveria durante a própria execução — o bash lê o script
+# em pedaços e trocá-lo no meio quebra a execução de formas bizarras.
+#
+# Instalar/atualizar:
+#   sudo cp /opt/otica/deploy/otica-publicar /usr/local/bin/otica-publicar
+#   sudo chmod +x /usr/local/bin/otica-publicar
+# =====================================================================
+set -euo pipefail
+
+ZIP="${1:-/DATA/otica-servidor.zip}"
+RAIZ=/opt/otica
+DONO=otica
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "✗ Rode com sudo:  sudo otica-publicar" >&2
+  exit 1
+fi
+
+if [ ! -f "$ZIP" ]; then
+  echo "✗ Não encontrei o pacote: $ZIP" >&2
+  echo "  Envie o zip pelo app Files do CasaOS, ou passe o caminho:" >&2
+  echo "    sudo otica-publicar /caminho/do/otica-servidor.zip" >&2
+  exit 1
+fi
+
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+echo "==> Backup do banco antes de mexer"
+if [ -x "$RAIZ/deploy/backup-banco.sh" ] && "$RAIZ/deploy/backup-banco.sh"; then
+  :
+else
+  echo "    (backup não rodou — seguindo assim mesmo)"
+fi
+
+echo "==> Descompactando $ZIP"
+unzip -q "$ZIP" -d "$TMP"
+if [ ! -d "$TMP/OticaPopularSap" ]; then
+  echo "✗ O zip não tem a pasta OticaPopularSap na raiz. Gere com 'python gerar-zip.py'." >&2
+  exit 1
+fi
+
+echo "==> Copiando para $RAIZ"
+# sem --delete: os .env não estão no zip e precisam sobreviver
+rsync -a "$TMP/OticaPopularSap/" "$RAIZ/"
+
+echo "==> Ajustando permissões"
+chown -R "$DONO:$DONO" "$RAIZ"
+# os containers rodam com outro uid e precisam LER estes dois
+chmod -R a+rX "$RAIZ/docker" "$RAIZ/frontend/public"
+chmod +x "$RAIZ"/deploy/*.sh
+# os .env, ao contrário, só para o dono
+chmod 600 "$RAIZ/.env" "$RAIZ/backend/.env" "$RAIZ/frontend/.env" 2>/dev/null || true
+
+echo "==> Build e publicação"
+sudo -u "$DONO" -H "$RAIZ/deploy/atualizar.sh"

@@ -3,8 +3,7 @@ import { useLocation } from 'react-router-dom'
 import Hero from '../components/Hero'
 import Destaques from '../components/Destaques'
 import Features from '../components/Features'
-import Testimonials from '../components/Testimonials'
-import Contact from '../components/Contact'
+import VisiteALoja from '../components/VisiteALoja'
 
 function Home() {
   const location = useLocation()
@@ -23,8 +22,7 @@ function Home() {
       <Hero />
       <Destaques />
       <Features />
-      <Testimonials />
-      <Contact />
+      <VisiteALoja />
     </>
   )
 }

@@ -68,6 +68,7 @@ export const api = {
   // ---- público ----
   destaques: () => request('/api/produtos/destaques'),
   categorias: () => request('/api/categorias'),
+  /** Catálogo paginado. Resposta: { itens, total, pagina, porPagina, paginas } */
   produtos: (params = {}) => {
     const qs = new URLSearchParams(
       Object.entries(params).filter(([, v]) => v !== undefined && v !== '')
@@ -82,6 +83,7 @@ export const api = {
     request('/api/auth/senha', { method: 'POST', auth: true, body: { senhaAtual, senhaNova } }),
 
   // ---- admin ----
+  /** Igual ao público, mas com token: traz inativos e o total de destaques. */
   produtosAdmin: (params = {}) => {
     const qs = new URLSearchParams(
       Object.entries(params).filter(([, v]) => v !== undefined && v !== '')
@@ -97,6 +99,12 @@ export const api = {
   enviarImagem: (arquivo) => {
     const form = new FormData()
     form.append('imagem', arquivo)
+    return request('/api/upload', { method: 'POST', auth: true, body: form, raw: true })
+  },
+  /** Envia a galeria de uma vez. Resposta: { imagens: [{ caminho, url, tamanho }] } */
+  enviarImagens: (arquivos) => {
+    const form = new FormData()
+    for (const arquivo of arquivos) form.append('imagens', arquivo)
     return request('/api/upload', { method: 'POST', auth: true, body: form, raw: true })
   },
   // ---- consultas (agenda) ----
@@ -123,6 +131,7 @@ export const api = {
 }
 
 export const MAX_DESTAQUES = 5
+export const MAX_IMAGENS = 8
 
 export const STATUS_CONSULTA = {
   AGENDADA: 'Agendada',

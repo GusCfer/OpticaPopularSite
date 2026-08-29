@@ -3,7 +3,8 @@
 const { Router } = require('express')
 const produtos = require('../services/produtos.service')
 const { exigirAutenticacao } = require('../middlewares/auth')
-const { upload, apagarImagem } = require('../middlewares/upload')
+const env = require('../config/env')
+const { uploadGaleria, arquivosEnviados } = require('../middlewares/upload')
 
 const router = Router()
 
@@ -24,6 +25,10 @@ router.get('/produtos/destaques', async (_req, res, next) => {
   }
 })
 
+/**
+ * Catálogo paginado. Resposta: { itens, total, pagina, porPagina, paginas }.
+ * Aceita ?pagina=2&porPagina=12&categoria=solar&busca=aviador
+ */
 router.get('/produtos', async (req, res, next) => {
   try {
     const publico = !req.headers.authorization
@@ -31,10 +36,13 @@ router.get('/produtos', async (req, res, next) => {
       await produtos.listar({
         categoria: req.query.categoria,
         busca: req.query.busca,
-        limite: req.query.limite,
+        pagina: req.query.pagina,
+        porPagina: req.query.porPagina ?? req.query.limite,
         destaque: req.query.destaque === undefined ? undefined : req.query.destaque === 'true',
         // visitante só enxerga produto ativo
         ativo: publico ? true : req.query.ativo === undefined ? undefined : req.query.ativo === 'true',
+        // o contador de destaques do painel é do catálogo todo, não da página
+        contarDestaquesTambem: !publico,
       })
     )
   } catch (err) {
@@ -77,24 +85,35 @@ router.patch('/produtos/:id/destaque', exigirAutenticacao, async (req, res, next
 
 router.delete('/produtos/:id', exigirAutenticacao, async (req, res, next) => {
   try {
-    const { imagemUrl } = await produtos.remover(Number(req.params.id))
-    apagarImagem(imagemUrl)
+    // o service já apaga do disco a galeria inteira
+    await produtos.remover(Number(req.params.id))
     res.status(204).end()
   } catch (err) {
     next(err)
   }
 })
 
-// Upload da imagem: devolve a URL pra ser salva junto com o produto.
-router.post('/upload', exigirAutenticacao, upload.single('imagem'), (req, res, next) => {
+/**
+ * Upload das fotos. Aceita de uma a oito por vez e devolve os caminhos, que o
+ * painel envia de volta no PUT/POST do produto — o upload não altera produto
+ * nenhum sozinho.
+ *
+ * A resposta traz "imagens" (a lista) e também "caminho"/"url" da primeira,
+ * que é o formato antigo, de quando cada produto tinha uma foto só.
+ */
+router.post('/upload', exigirAutenticacao, uploadGaleria, (req, res, next) => {
   try {
-    if (!req.file) return res.status(400).json({ erro: 'Nenhuma imagem enviada', codigo: 'SEM_ARQUIVO' })
-    const caminho = `/uploads/produtos/${req.file.filename}`
-    res.status(201).json({
-      caminho,
-      url: `${require('../config/env').API_PUBLIC_URL}${caminho}`,
-      tamanho: req.file.size,
+    const arquivos = arquivosEnviados(req)
+    if (arquivos.length === 0) {
+      return res.status(400).json({ erro: 'Nenhuma imagem enviada', codigo: 'SEM_ARQUIVO' })
+    }
+
+    const imagens = arquivos.map((arquivo) => {
+      const caminho = `/uploads/produtos/${arquivo.filename}`
+      return { caminho, url: `${env.API_PUBLIC_URL}${caminho}`, tamanho: arquivo.size }
     })
+
+    res.status(201).json({ imagens, ...imagens[0] })
   } catch (err) {
     next(err)
   }

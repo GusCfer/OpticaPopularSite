@@ -28,7 +28,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: env.UPLOAD_MAX_BYTES, files: 1 },
+  // files: o painel manda a galeria inteira de uma vez. O tamanho por arquivo
+  // continua valendo — o navegador já reduz a foto antes de enviar, então
+  // 5 MB aqui é folga, não o caso normal.
+  limits: { fileSize: env.UPLOAD_MAX_BYTES, files: env.MAX_IMAGENS_PRODUTO },
   fileFilter: (_req, file, cb) => {
     if (!TIPOS_PERMITIDOS[file.mimetype]) {
       return cb(requisicaoInvalida('Formato inválido. Envie JPG, PNG, WEBP ou AVIF.', 'FORMATO_INVALIDO'))
@@ -37,13 +40,19 @@ const upload = multer({
   },
 })
 
-/** Remove do disco a imagem de um produto apagado/substituído. */
-function apagarImagem(caminhoRelativo) {
-  if (!caminhoRelativo || !caminhoRelativo.startsWith('/uploads/')) return
-  const alvo = path.join(env.UPLOAD_DIR, caminhoRelativo.replace('/uploads/', ''))
-  const dentroDaPasta = path.resolve(alvo).startsWith(path.resolve(env.UPLOAD_DIR))
-  if (!dentroDaPasta) return
-  fs.promises.unlink(alvo).catch(() => {})
+/**
+ * Aceita a galeria em um envio só. Dois nomes de campo pela compatibilidade:
+ * "imagens" é o novo, "imagem" era o de antes, quando a foto era uma só.
+ */
+const uploadGaleria = upload.fields([
+  { name: 'imagens', maxCount: env.MAX_IMAGENS_PRODUTO },
+  { name: 'imagem', maxCount: env.MAX_IMAGENS_PRODUTO },
+])
+
+/** Junta os dois campos numa lista só, na ordem em que chegaram. */
+function arquivosEnviados(req) {
+  const campos = req.files || {}
+  return [...(campos.imagens || []), ...(campos.imagem || [])]
 }
 
-module.exports = { upload, apagarImagem }
+module.exports = { upload, uploadGaleria, arquivosEnviados }

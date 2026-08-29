@@ -4,8 +4,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- favicon.ico no nome padrão: o navegador pede /favicon.ico sozinho, e sem
+       o arquivo o try_files do Nginx respondia o index.html no lugar do ícone -->
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="apple-touch-icon" href="/icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   <!-- barra do navegador no celular acompanha o topo escuro do site -->
   <meta name="theme-color" content="#120d0b" />
   <meta name="description"

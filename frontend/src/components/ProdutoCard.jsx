@@ -9,6 +9,8 @@ const WHATSAPP = '5543996335759'
  */
 function ProdutoCard({ produto, aoAmpliar }) {
   const temImagem = Boolean(produto.imagemUrl)
+  // avisa que existe mais para ver antes de a pessoa abrir
+  const totalFotos = produto.imagens?.length || (temImagem ? 1 : 0)
 
   function ampliar() {
     if (temImagem && aoAmpliar) aoAmpliar(produto)
@@ -25,6 +27,9 @@ function ProdutoCard({ produto, aoAmpliar }) {
         >
           <img src={produto.imagemUrl} alt={produto.nome} loading="lazy" />
           <span className="produto-card__tag">{produto.categoria?.nome}</span>
+          {totalFotos > 1 && (
+            <span className="produto-card__fotos">{totalFotos} fotos</span>
+          )}
           <span className="produto-card__lupa" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="18" height="18">
               <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="2" />

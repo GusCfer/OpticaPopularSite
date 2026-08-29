@@ -202,7 +202,7 @@ function Consultas() {
         </div>
       ) : (
         <div className="tabela-wrap">
-          <table className="tabela">
+          <table className="tabela tabela--cartoes">
             <thead>
               <tr>
                 <th>Paciente</th>
@@ -219,17 +219,17 @@ function Consultas() {
                 const cancelada = consulta.status === 'CANCELADA'
                 return (
                   <tr key={consulta.id} className={cancelada ? 'linha--inativa' : ''}>
-                    <td>
+                    <td data-rotulo="Paciente">
                       <strong>{consulta.pacienteNome}</strong>
                       <small>{consulta.pacienteEmail}</small>
                       {consulta.pacienteTelefone && <small>{consulta.pacienteTelefone}</small>}
                     </td>
-                    <td>{consulta.medicoNome}</td>
-                    <td>
+                    <td data-rotulo="Médico(a)">{consulta.medicoNome}</td>
+                    <td data-rotulo="Data e horário">
                       {formatarDataHora(consulta.dataHora)}
                       {consulta.observacoes && <small title={consulta.observacoes}>{consulta.observacoes}</small>}
                     </td>
-                    <td>
+                    <td data-rotulo="Situação">
                       <span
                         className={`pill ${
                           consulta.status === 'AGENDADA'
@@ -242,7 +242,7 @@ function Consultas() {
                         {STATUS_CONSULTA[consulta.status]}
                       </span>
                     </td>
-                    <td>
+                    <td data-rotulo="Lembrete">
                       <span className={`pill ${lembrete.classe}`} title={lembrete.titulo}>
                         {lembrete.texto}
                       </span>

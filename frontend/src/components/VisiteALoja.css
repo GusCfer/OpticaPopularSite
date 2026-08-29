@@ -1,0 +1,199 @@
+.visite {
+  background: var(--bg-elevated);
+}
+
+.visite__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.visite__bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------------------------- estado atual ------------------------- */
+
+.visite__estado {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+}
+
+.visite__ponto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex: 0 0 auto;
+}
+
+.visite__estado.is-aberta {
+  border-color: #b7d8c2;
+  background: #eef7f1;
+}
+
+.visite__estado.is-aberta .visite__ponto {
+  background: #2f6b46;
+}
+
+.visite__estado.is-aberta strong {
+  color: #2f6b46;
+}
+
+.visite__detalhe {
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+/* ---------------------------- tabela de horários ------------------- */
+
+.visite__horarios {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+
+.visite__legenda {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: 10px;
+}
+
+.visite__horarios tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.visite__horarios tr:last-child {
+  border-bottom: none;
+}
+
+.visite__horarios th {
+  text-align: left;
+  font-weight: 500;
+  padding: 9px 0;
+  color: var(--text);
+}
+
+.visite__horarios th small {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.visite__horarios td {
+  text-align: right;
+  padding: 9px 0;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.visite__horarios .is-hoje th,
+.visite__horarios .is-hoje td {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.visite__horarios .is-fechado td {
+  color: var(--brown-300);
+}
+
+/* ---------------------------- endereço ----------------------------- */
+
+.visite__endereco {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-style: normal;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.visite__endereco strong {
+  font-family: var(--font-heading);
+  font-size: 21px;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.visite__acoes {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* variante clara do botão: o btn-outline do site é feito para fundo escuro */
+.btn-claro {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+@media (hover: hover) {
+  .btn-claro:hover {
+    border-color: var(--brown-300);
+    background: var(--bg-elevated);
+  }
+}
+
+.visite__telefone {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.visite__telefone a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 860px) {
+  .visite__grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .visite__grid {
+    gap: 26px;
+  }
+
+  .visite__bloco {
+    gap: 14px;
+  }
+
+  .visite__estado {
+    align-self: stretch;
+    justify-content: center;
+    font-size: 13.5px;
+  }
+
+  .visite__horarios {
+    font-size: 14px;
+  }
+
+  .visite__endereco strong {
+    font-size: 18px;
+  }
+
+  .visite__acoes .btn {
+    flex: 1 1 100%;
+  }
+}

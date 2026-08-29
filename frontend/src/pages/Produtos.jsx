@@ -1,20 +1,28 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../services/api'
 import ProdutoCard from '../components/ProdutoCard'
 import Lightbox from '../components/Lightbox'
+import Paginacao from '../components/Paginacao'
 import './Produtos.css'
 
+const POR_PAGINA = 12
+const ESPERA_BUSCA = 350 // ms parado antes de consultar o servidor
+
 function Produtos() {
-  // a categoria fica na URL (/produtos?categoria=solar) — dá pra compartilhar o link
+  // categoria, busca e página moram na URL: o link é compartilhável e o botão
+  // voltar do navegador funciona de verdade
   const [params, setParams] = useSearchParams()
   const categoria = params.get('categoria') || ''
+  const buscaUrl = params.get('busca') || ''
+  const pagina = Math.max(1, Number(params.get('pagina')) || 1)
 
   const [categorias, setCategorias] = useState([])
-  const [produtos, setProdutos] = useState(null)
+  const [resposta, setResposta] = useState(null)
   const [erro, setErro] = useState('')
-  const [busca, setBusca] = useState('')
   const [ampliado, setAmpliado] = useState(null)
+  // campo controlado à parte da URL: digitar não pode gerar uma consulta por tecla
+  const [busca, setBusca] = useState(buscaUrl)
 
   useEffect(() => {
     let ativo = true
@@ -27,37 +35,59 @@ function Produtos() {
     }
   }, [])
 
+  // enquanto a pessoa digita, só o último valor vira consulta
+  useEffect(() => {
+    if (busca === buscaUrl) return
+    const id = setTimeout(() => {
+      atualizarUrl({ busca, pagina: 1 })
+    }, ESPERA_BUSCA)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busca])
+
   useEffect(() => {
     let ativo = true
     api
-      .produtos({ categoria, limite: 200 })
-      .then((lista) => ativo && setProdutos(lista))
+      .produtos({ categoria, busca: buscaUrl, pagina, porPagina: POR_PAGINA })
+      // o erro só sai da tela quando uma carga dá certo, não ao começar a próxima
+      .then((dados) => {
+        if (!ativo) return
+        setResposta(dados)
+        setErro('')
+      })
       .catch((err) => {
         if (!ativo) return
-        setProdutos([])
+        setResposta({ itens: [], total: 0, pagina: 1, paginas: 1 })
         setErro(err.message || 'Não consegui carregar os produtos agora.')
       })
     return () => {
       ativo = false
     }
-  }, [categoria])
+  }, [categoria, buscaUrl, pagina])
 
-  // a busca por texto é feita no navegador, sem ida extra ao servidor
-  const visiveis = useMemo(() => {
-    const lista = produtos || []
-    const termo = busca.trim().toLowerCase()
-    if (!termo) return lista
-    return lista.filter((p) =>
-      `${p.nome} ${p.marca || ''} ${p.descricao || ''}`.toLowerCase().includes(termo)
-    )
-  }, [produtos, busca])
-
-  function trocarCategoria(slug) {
-    if (slug) setParams({ categoria: slug })
-    else setParams({})
+  /** Escreve os filtros na URL, omitindo o que estiver vazio ou no padrão. */
+  function atualizarUrl({ categoria: cat = categoria, busca: b = buscaUrl, pagina: p = 1 }) {
+    const novo = {}
+    if (cat) novo.categoria = cat
+    if (b) novo.busca = b
+    if (p > 1) novo.pagina = String(p)
+    setParams(novo)
   }
 
-  const carregando = produtos === null
+  function trocarCategoria(slug) {
+    // trocar de categoria sempre volta para a primeira página
+    atualizarUrl({ categoria: slug, pagina: 1 })
+  }
+
+  function trocarPagina(nova) {
+    atualizarUrl({ pagina: nova })
+    // sem isto a pessoa troca de página e continua olhando o rodapé
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const carregando = resposta === null
+  const itens = resposta?.itens ?? []
+  const total = resposta?.total ?? 0
   const nomeCategoria = categorias.find((c) => c.slug === categoria)?.nome
 
   return (
@@ -113,22 +143,31 @@ function Produtos() {
 
           {carregando ? (
             <p className="produtos__aviso">Carregando produtos…</p>
-          ) : visiveis.length === 0 ? (
+          ) : itens.length === 0 ? (
             <p className="produtos__aviso">
-              {busca
-                ? `Nenhum produto encontrado para "${busca}".`
+              {buscaUrl
+                ? `Nenhum produto encontrado para "${buscaUrl}".`
                 : 'Nenhum produto cadastrado nesta categoria ainda.'}
             </p>
           ) : (
             <>
               <p className="produtos__contagem">
-                {visiveis.length} {visiveis.length === 1 ? 'produto' : 'produtos'}
+                {total} {total === 1 ? 'produto' : 'produtos'}
+                {resposta.paginas > 1 && ` — página ${resposta.pagina} de ${resposta.paginas}`}
               </p>
+
               <div className="produtos__grid">
-                {visiveis.map((produto) => (
+                {itens.map((produto) => (
                   <ProdutoCard key={produto.id} produto={produto} aoAmpliar={setAmpliado} />
                 ))}
               </div>
+
+              <Paginacao
+                pagina={resposta.pagina}
+                paginas={resposta.paginas}
+                aoTrocar={trocarPagina}
+                rotulo="Páginas do catálogo"
+              />
             </>
           )}
         </div>
