@@ -19,21 +19,53 @@
 # =====================================================================
 set -euo pipefail
 
-ZIP="${1:-/DATA/otica-servidor.zip}"
 RAIZ=/opt/otica
 DONO=otica
+PROCURAR_EM="${PROCURAR_EM:-/DATA}"
 
 if [ "$(id -u)" -ne 0 ]; then
   echo "✗ Rode com sudo:  sudo otica-publicar" >&2
   exit 1
 fi
 
-if [ ! -f "$ZIP" ]; then
-  echo "✗ Não encontrei o pacote: $ZIP" >&2
-  echo "  Envie o zip pelo app Files do CasaOS, ou passe o caminho:" >&2
+# Sem caminho explícito, pega o zip MAIS RECENTE que casar com o padrão.
+# O gerenciador de arquivos do CasaOS às vezes não substitui um arquivo que já
+# existe: salva como "otica-servidor(1).zip" e você acabaria descompactando o
+# antigo. Pegar o mais novo, e não um nome fixo, elimina essa pegadinha.
+if [ -n "${1:-}" ]; then
+  ZIP="$1"
+else
+  ZIP="$(find "$PROCURAR_EM" -maxdepth 1 -name 'otica-servidor*.zip' -printf '%T@ %p\n' 2>/dev/null \
+        | sort -rn | head -1 | cut -d' ' -f2-)"
+fi
+
+if [ -z "${ZIP:-}" ] || [ ! -f "$ZIP" ]; then
+  echo "✗ Não encontrei nenhum otica-servidor*.zip em $PROCURAR_EM" >&2
+  echo "  Envie o zip pelo CasaOS, ou passe o caminho:" >&2
   echo "    sudo otica-publicar /caminho/do/otica-servidor.zip" >&2
   exit 1
 fi
+
+echo "==> Pacote: $ZIP"
+echo "    enviado em: $(date -r "$ZIP" '+%d/%m/%Y %H:%M:%S')"
+
+# carimbo gravado pelo gerar-zip.py — tem que bater com o que ele imprimiu
+VERSAO="$(unzip -p "$ZIP" 'OticaPopularSap/_versao.txt' 2>/dev/null || true)"
+if [ -n "$VERSAO" ]; then
+  echo "    VERSAO: $VERSAO"
+else
+  echo "    (pacote sem carimbo de versão — gerado por uma versão antiga do gerar-zip.py)"
+fi
+
+# outros zips por perto costumam ser sobras de upload que não substituiu
+OUTROS="$(find "$PROCURAR_EM" -maxdepth 1 -name 'otica-servidor*.zip' 2>/dev/null | wc -l)"
+if [ "$OUTROS" -gt 1 ]; then
+  echo
+  echo "⚠  Existem $OUTROS arquivos otica-servidor*.zip em $PROCURAR_EM."
+  echo "   Usando o mais recente (acima). Apague os antigos para evitar confusão:"
+  find "$PROCURAR_EM" -maxdepth 1 -name 'otica-servidor*.zip' -printf '     %TY-%Tm-%Td %TH:%TM  %p\n' | sort
+fi
+echo
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

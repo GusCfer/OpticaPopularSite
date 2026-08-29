@@ -10,11 +10,11 @@
 
 /** 0 = domingo … 6 = sábado. Null = fechado. */
 const SEMANA = {
-  1: { inicio: '09:00', fim: '18:00' },
-  2: { inicio: '09:00', fim: '18:00' },
-  3: { inicio: '09:00', fim: '18:00' },
-  4: { inicio: '09:00', fim: '18:00' },
-  5: { inicio: '09:00', fim: '18:00' },
+  1: { inicio: '08:00', fim: '18:00' },
+  2: { inicio: '08:00', fim: '18:00' },
+  3: { inicio: '08:00', fim: '18:00' },
+  4: { inicio: '08:00', fim: '18:00' },
+  5: { inicio: '08:00', fim: '18:00' },
 }
 
 const SABADO_INICIO_DO_MES = { inicio: '09:00', fim: '17:00' } // 1º e 2º sábado

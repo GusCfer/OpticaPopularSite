@@ -85,7 +85,7 @@ function Header() {
             className="btn btn-primary header__cta"
             onClick={(e) => irParaSecao(e, '#contato')}
           >
-            Agende sua avaliação
+            Entre em contato
           </a>
         </nav>
 
