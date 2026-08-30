@@ -46,6 +46,9 @@ const env = {
   MAX_IMAGENS_PRODUTO: 8,
   // tamanho padrão da página do catálogo e do painel
   PRODUTOS_POR_PAGINA: 12,
+  // index.html compilado, usado para montar a prévia do link do produto.
+  // É o mesmo arquivo que o Nginx serve como raiz do site.
+  SPA_INDEX: process.env.SPA_INDEX || '/var/www/otica/index.html',
 
   // ---- Agenda de consultas e lembrete por e-mail ----------------------
   // Fuso da óptica. As consultas são gravadas em horário local (TIMESTAMP

@@ -50,6 +50,15 @@ router.get('/produtos', async (req, res, next) => {
   }
 })
 
+// antes de /produtos/:id, senão "slug" seria interpretado como um id
+router.get('/produtos/slug/:slug', async (req, res, next) => {
+  try {
+    res.json(await produtos.buscarPorSlug(req.params.slug))
+  } catch (err) {
+    next(err)
+  }
+})
+
 router.get('/produtos/:id', async (req, res, next) => {
   try {
     res.json(await produtos.buscarPorId(Number(req.params.id)))

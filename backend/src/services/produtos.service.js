@@ -211,6 +211,13 @@ async function buscarPorId(id) {
   return comUrlAbsoluta(rows[0])
 }
 
+/** Busca pelo slug — é ele que aparece no link compartilhável do produto. */
+async function buscarPorSlug(slug) {
+  const { rows } = await db.query(`${SELECT_PRODUTO} WHERE p.slug = $1`, [String(slug || '')])
+  if (!rows[0]) throw naoEncontrado('Produto não encontrado')
+  return comUrlAbsoluta(rows[0])
+}
+
 async function contarDestaques() {
   const { rows } = await db.query('SELECT COUNT(*)::int AS total FROM produtos WHERE destaque = TRUE')
   return rows[0].total
@@ -380,6 +387,6 @@ async function listarCategorias() {
 }
 
 module.exports = {
-  listar, listarDestaques, buscarPorId, criar, atualizar, definirDestaque,
+  listar, listarDestaques, buscarPorId, buscarPorSlug, criar, atualizar, definirDestaque,
   remover, contarDestaques, listarCategorias, paraCaminhoRelativo,
 }

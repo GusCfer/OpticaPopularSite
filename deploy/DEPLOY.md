@@ -471,6 +471,10 @@ sudo -u otica rsync -a --delete /opt/otica/frontend/dist/ /var/www/otica/
 
 Agora o Nginx:
 
+> **Ao atualizar o site depois:** o `otica-publicar` NÃO mexe no Nginx. Sempre que o
+> `deploy/nginx-otica.conf` mudar (foi o caso do link compartilhável do produto), rode
+> estes mesmos três comandos de novo, terminando com `sudo systemctl reload nginx`.
+
 ```bash
 sudo cp /opt/otica/deploy/nginx-otica.conf /etc/nginx/sites-available/otica
 sudo ln -sf /etc/nginx/sites-available/otica /etc/nginx/sites-enabled/otica
@@ -486,6 +490,9 @@ Teste local — as duas linhas têm que responder:
 ```bash
 curl -I http://127.0.0.1:8080/                 # HTTP/1.1 200 OK
 curl http://127.0.0.1:8080/api/health          # {"ok":true,...}
+
+# link compartilhável: tem que vir o nome do produto no <title>, não "Óptica Popular"
+curl -s http://127.0.0.1:8080/produto/SLUG-DE-UM-PRODUTO | grep -E '<title>|og:image'
 ```
 
 Se o `nginx -t` reclamar de porta, volte na etapa 0 e escolha uma porta livre: troque
@@ -788,6 +795,8 @@ E acesse `http://100.x.y.z:5050`. O pgAdmin em produção continua pedindo login
 | API sobe e cai em loop                    | `journalctl -u otica-api -n 50` — quase sempre `DATABASE_URL` ou `JWT_SECRET` |
 | `/admin` dá 404 ao recarregar             | Faltou o `try_files` do Nginx — confira o `sites-enabled/otica`    |
 | Foto do produto some                      | `API_PUBLIC_URL` diferente do domínio real no `backend/.env`       |
+| Link do produto abre o site, mas não o produto | Faltou o `location /produto/` no Nginx: recopie o `nginx-otica.conf` e `sudo systemctl reload nginx` |
+| Prévia do WhatsApp vem sem foto ou genérica | `curl -s https://SEU-DOMINIO/produto/SLUG \| grep og:` — se vier vazio é o Nginx; se vier com `localhost` é o `API_PUBLIC_URL`. O WhatsApp guarda a prévia por horas: teste com um link novo |
 | Lembrete não chega                        | `journalctl -u otica-api -n 100` e `npm run testar-email`          |
 | Domínio dá erro 1033 da Cloudflare        | O tunnel caiu: `systemctl status cloudflared` e `cloudflared tunnel info otica` |
 | Domínio dá erro 502                       | O tunnel está de pé mas o Nginx não: `systemctl status nginx`      |

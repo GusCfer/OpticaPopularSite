@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit')
 const env = require('./config/env')
 const authRoutes = require('./routes/auth.routes')
 const produtosRoutes = require('./routes/produtos.routes')
+const compartilharRoutes = require('./routes/compartilhar.routes')
 const consultasRoutes = require('./routes/consultas.routes')
 const { naoEncontrado, tratadorDeErros } = require('./middlewares/erro')
 
@@ -80,6 +81,11 @@ app.use(
 )
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, ambiente: env.NODE_ENV }))
+
+// Fora de /api de propósito: /produto/<slug> é um endereço do SITE, que a API
+// atende só para conseguir preencher as meta tags da prévia. O Nginx encaminha
+// esse caminho para cá; todo o resto do site continua vindo do disco.
+app.use('/', compartilharRoutes)
 
 app.use('/api/auth', authRoutes)
 app.use('/api', produtosRoutes)

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { formatarPreco } from '../services/api'
+import { copiarTexto, linkDoProduto, linkWhatsApp } from '../lib/compartilhar'
 import './Lightbox.css'
 
 const FATOR_ZOOM = 2.4
@@ -9,6 +10,8 @@ const APONTADOR_FINO =
 const VERBO = APONTADOR_FINO ? 'Clique' : 'Toque'
 // arrastou mais que isto? foi rolagem do carrossel, não um toque para dar zoom
 const TOLERANCIA_TOQUE = 10
+// tempo que o "Link copiado!" fica na tela
+const AVISO_COPIA = 2500
 
 /**
  * Foto ampliada do produto, com carrossel de até 8 imagens e zoom.
@@ -26,6 +29,7 @@ function Lightbox({ produto, aoFechar }) {
 
   const [indice, setIndice] = useState(0)
   const [zoom, setZoom] = useState(null) // { x, y } em % da imagem, ou null
+  const [copia, setCopia] = useState('') // '', 'ok' ou 'falhou'
   const trilhoRef = useRef(null)
   const toqueRef = useRef(null)
 
@@ -55,6 +59,18 @@ function Lightbox({ produto, aoFechar }) {
       document.removeEventListener('keydown', aoTeclar)
     }
   }, [aoFechar, irPara, indice])
+
+  // o aviso de cópia se apaga sozinho, e o timer morre junto com a tela
+  useEffect(() => {
+    if (!copia) return
+    const id = setTimeout(() => setCopia(''), AVISO_COPIA)
+    return () => clearTimeout(id)
+  }, [copia])
+
+  async function copiarLink() {
+    const ok = await copiarTexto(linkDoProduto(produto))
+    setCopia(ok ? 'ok' : 'falhou')
+  }
 
   /** Descobre o slide da frente pela posição do scroll. */
   function aoRolar() {
@@ -103,7 +119,19 @@ function Lightbox({ produto, aoFechar }) {
       aria-label={`Fotos de ${produto.nome}`}
       onClick={aoFechar}
     >
-      <button type="button" className="lightbox__fechar" onClick={aoFechar} aria-label="Fechar">
+      {/* o × fica FORA do cartão, então o clique dele subia até o fundo escuro e
+          disparava o fechar duas vezes — inofensivo quando fechar era só apagar
+          um estado, mas agora ele volta um passo no histórico, e dois passos
+          jogavam a pessoa para fora do site */}
+      <button
+        type="button"
+        className="lightbox__fechar"
+        onClick={(e) => {
+          e.stopPropagation()
+          aoFechar()
+        }}
+        aria-label="Fechar"
+      >
         ×
       </button>
 
@@ -200,6 +228,33 @@ function Lightbox({ produto, aoFechar }) {
             )}
           </span>
         </figcaption>
+
+        {/* É aqui, com a peça aberta na tela, que a pessoa decide mandar para
+            alguém — por isso os dois botões moram na foto ampliada, e não no
+            card do catálogo, onde virariam ruído em cada produto da grade. */}
+        <div className="lightbox__acoes">
+          <button
+            type="button"
+            className="lightbox__acao"
+            onClick={copiarLink}
+            aria-live="polite"
+          >
+            {copia === 'ok'
+              ? '✓ Link copiado!'
+              : copia === 'falhou'
+                ? 'Copie da barra de endereço'
+                : 'Copiar link'}
+          </button>
+
+          <a
+            className="lightbox__acao lightbox__acao--destaque"
+            href={linkWhatsApp(produto)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Tenho interesse
+          </a>
+        </div>
       </figure>
     </div>
   )

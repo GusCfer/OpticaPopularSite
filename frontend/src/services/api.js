@@ -75,6 +75,8 @@ export const api = {
     ).toString()
     return request(`/api/produtos${qs ? `?${qs}` : ''}`)
   },
+  /** Um produto pelo slug — é assim que o link compartilhado abre a foto certa. */
+  produtoPorSlug: (slug) => request(`/api/produtos/slug/${encodeURIComponent(slug)}`),
 
   // ---- autenticação ----
   login: (email, senha) => request('/api/auth/login', { method: 'POST', body: { email, senha } }),

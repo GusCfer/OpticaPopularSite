@@ -17,6 +17,9 @@ function Site() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/produtos" element={<Produtos />} />
+        {/* Link compartilhado: a mesma página do catálogo, já com a foto aberta.
+            Fechar a foto devolve a pessoa ao catálogo, que ela nem precisou procurar. */}
+        <Route path="/produto/:slug" element={<Produtos />} />
       </Routes>
       <Footer />
       <WhatsAppButton />

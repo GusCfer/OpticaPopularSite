@@ -99,7 +99,8 @@
 
 .lightbox__slide img {
   width: 100%;
-  max-height: calc(100vh - 250px);
+  /* 320px = miniaturas + legenda + botões + a folga em volta do cartão */
+  max-height: calc(100vh - 320px);
   object-fit: contain;
   cursor: zoom-in;
   user-select: none;
@@ -179,6 +180,8 @@
 
 .lightbox__miniaturas {
   display: flex;
+  /* quem cede altura no cartão é a foto, nunca estas três faixas de baixo */
+  flex-shrink: 0;
   gap: 8px;
   padding: 10px 12px;
   overflow-x: auto;
@@ -224,7 +227,8 @@
 /* ---------------------------- legenda ------------------------------ */
 
 .lightbox__legenda {
-  padding: 16px 22px;
+  flex-shrink: 0;
+  padding: 16px 22px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -258,13 +262,79 @@
   font-family: var(--font-body);
 }
 
+/* ---------------------------- compartilhar ---------------------------- */
+
+.lightbox__acoes {
+  display: flex;
+  flex-shrink: 0;
+  gap: 10px;
+  padding: 0 22px 18px;
+}
+
+.lightbox__acao {
+  flex: 1;
+  /* o alvo de toque não encolhe abaixo dos 44px recomendados nem no celular */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  /* "Tenho interesse" em duas linhas fica com cara de erro: o texto não quebra,
+     quem cede é o tamanho da fonte nas telas estreitas (regra lá embaixo) */
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.lightbox__acao--destaque {
+  /* mesmo preto do "Tenho interesse" do card, para os dois lerem como o mesmo botão */
+  background: var(--black);
+  border-color: transparent;
+  color: var(--text-inverse);
+}
+
+/* No desktop esticar os dois botões por 900px deixa a barra com cara de formulário.
+   Eles ficam do tamanho do texto, encostados à direita, alinhados com o preço.
+   No celular continuam ocupando metade cada um, que é onde o polegar alcança. */
+@media (min-width: 601px) {
+  .lightbox__acoes {
+    justify-content: flex-end;
+  }
+
+  .lightbox__acao {
+    flex: 0 1 auto;
+    min-width: 170px;
+    padding: 0 22px;
+  }
+}
+
+/* só onde existe mouse: no celular o :hover fica "grudado" depois do toque */
+@media (hover: hover) {
+  .lightbox__acao:hover {
+    background: rgba(36, 22, 16, 0.06);
+  }
+
+  .lightbox__acao--destaque:hover {
+    background: var(--brown-950);
+  }
+}
+
 @media (max-width: 600px) {
   .lightbox {
     padding: 10px;
   }
 
   .lightbox__slide img {
-    max-height: calc(100dvh - 260px);
+    max-height: calc(100dvh - 320px);
   }
 
   .lightbox__miniatura {
@@ -283,5 +353,22 @@
 
   .lightbox__preco {
     font-size: 19px;
+  }
+
+  .lightbox__acoes {
+    padding: 0 14px 14px;
+  }
+
+  .lightbox__acao {
+    font-size: 13px;
+    padding: 0 8px;
+  }
+}
+
+/* celulares pequenos (iPhone SE e parecidos): 13px não cabiam lado a lado */
+@media (max-width: 380px) {
+  .lightbox__acao {
+    font-size: 12px;
+    padding: 0 4px;
   }
 }

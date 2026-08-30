@@ -1,7 +1,6 @@
 import { formatarPreco } from '../services/api'
+import { linkWhatsApp } from '../lib/compartilhar'
 import './ProdutoCard.css'
-
-const WHATSAPP = '5543996335759'
 
 /**
  * Card de produto usado na home (destaques) e na página /produtos.
@@ -61,11 +60,11 @@ function ProdutoCard({ produto, aoAmpliar }) {
           )}
         </div>
 
+        {/* a mensagem já leva o link do produto: quem receber abre direto nesta peça,
+            com foto e preço, em vez de ter que procurar no catálogo */}
         <a
           className="btn btn-dark produto-card__cta"
-          href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
-            `Olá! Tenho interesse no produto: ${produto.nome}`
-          )}`}
+          href={linkWhatsApp(produto)}
           target="_blank"
           rel="noreferrer"
         >

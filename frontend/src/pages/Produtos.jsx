@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../services/api'
+import { rotaDoProduto } from '../lib/compartilhar'
 import ProdutoCard from '../components/ProdutoCard'
 import Lightbox from '../components/Lightbox'
 import Paginacao from '../components/Paginacao'
@@ -13,6 +14,10 @@ function Produtos() {
   // categoria, busca e página moram na URL: o link é compartilhável e o botão
   // voltar do navegador funciona de verdade
   const [params, setParams] = useSearchParams()
+  // /produto/<slug> cai nesta mesma página: o slug da URL é quem manda na foto ampliada
+  const { slug } = useParams()
+  const navegar = useNavigate()
+  const local = useLocation()
   const categoria = params.get('categoria') || ''
   const buscaUrl = params.get('busca') || ''
   const pagina = Math.max(1, Number(params.get('pagina')) || 1)
@@ -20,9 +25,14 @@ function Produtos() {
   const [categorias, setCategorias] = useState([])
   const [resposta, setResposta] = useState(null)
   const [erro, setErro] = useState('')
-  const [ampliado, setAmpliado] = useState(null)
+  // só usado quando o link chega de fora e o produto não está na página carregada
+  const [produtoDoLink, setProdutoDoLink] = useState(null)
+  const [linkQuebrado, setLinkQuebrado] = useState(false)
   // campo controlado à parte da URL: digitar não pode gerar uma consulta por tecla
   const [busca, setBusca] = useState(buscaUrl)
+  // trava contra fechar duas vezes: navegar(-1) repetido volta dois passos e
+  // tira a pessoa do site. Zera sozinha sempre que outra peça é aberta.
+  const jaFechou = useRef(false)
 
   useEffect(() => {
     let ativo = true
@@ -65,6 +75,58 @@ function Produtos() {
     }
   }, [categoria, buscaUrl, pagina])
 
+  const carregando = resposta === null
+  const itens = resposta?.itens ?? []
+  const total = resposta?.total ?? 0
+  const nomeCategoria = categorias.find((c) => c.slug === categoria)?.nome
+  // a foto ampliada é derivada da URL, nunca de um clique guardado em estado
+  const naPagina = slug ? itens.find((p) => p.slug === slug) : null
+  const ampliado = naPagina || (produtoDoLink?.slug === slug ? produtoDoLink : null)
+
+  // Quem chega por um link compartilhado quase nunca cai na mesma página do
+  // catálogo em que a peça está, então o produto é buscado pelo slug. Quando ele
+  // já está na lista carregada (a pessoa clicou num card), essa ida ao servidor
+  // não acontece — a abertura é instantânea.
+  useEffect(() => {
+    if (!slug || naPagina) return
+
+    let ativo = true
+    api
+      .produtoPorSlug(slug)
+      .then((p) => {
+        if (!ativo) return
+        setProdutoDoLink(p)
+        setLinkQuebrado(false)
+      })
+      .catch(() => ativo && setLinkQuebrado(true))
+    return () => {
+      ativo = false
+    }
+  }, [slug, naPagina])
+
+  useEffect(() => {
+    jaFechou.current = false
+  }, [slug])
+
+  /** Abre a foto ampliada registrando a rota — é o que torna o link copiável. */
+  function ampliar(produto) {
+    navegar({ pathname: rotaDoProduto(produto), search: params.toString() })
+  }
+
+  /**
+   * Fechar volta um passo no histórico, e não para um endereço fixo: assim quem
+   * abriu a peça a partir da home volta para a home, e quem abriu do catálogo
+   * volta para o catálogo com os mesmos filtros. Só quando a página do produto
+   * FOI a porta de entrada (link recebido no WhatsApp) não há passo anterior —
+   * aí o destino é o catálogo, sem deixar a pessoa presa numa tela sem saída.
+   */
+  function fechar() {
+    if (jaFechou.current) return
+    jaFechou.current = true
+    if (local.key === 'default') navegar({ pathname: '/produtos', search: params.toString() })
+    else navegar(-1)
+  }
+
   /** Escreve os filtros na URL, omitindo o que estiver vazio ou no padrão. */
   function atualizarUrl({ categoria: cat = categoria, busca: b = buscaUrl, pagina: p = 1 }) {
     const novo = {}
@@ -74,9 +136,9 @@ function Produtos() {
     setParams(novo)
   }
 
-  function trocarCategoria(slug) {
+  function trocarCategoria(alvo) {
     // trocar de categoria sempre volta para a primeira página
-    atualizarUrl({ categoria: slug, pagina: 1 })
+    atualizarUrl({ categoria: alvo, pagina: 1 })
   }
 
   function trocarPagina(nova) {
@@ -84,11 +146,6 @@ function Produtos() {
     // sem isto a pessoa troca de página e continua olhando o rodapé
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-
-  const carregando = resposta === null
-  const itens = resposta?.itens ?? []
-  const total = resposta?.total ?? 0
-  const nomeCategoria = categorias.find((c) => c.slug === categoria)?.nome
 
   return (
     <>
@@ -140,6 +197,11 @@ function Produtos() {
           </div>
 
           {erro && <p className="produtos__aviso">{erro}</p>}
+          {slug && linkQuebrado && (
+            <p className="produtos__aviso">
+              O produto deste link não está mais disponível. Veja o catálogo completo abaixo.
+            </p>
+          )}
 
           {carregando ? (
             <p className="produtos__aviso">Carregando produtos…</p>
@@ -158,7 +220,7 @@ function Produtos() {
 
               <div className="produtos__grid">
                 {itens.map((produto) => (
-                  <ProdutoCard key={produto.id} produto={produto} aoAmpliar={setAmpliado} />
+                  <ProdutoCard key={produto.id} produto={produto} aoAmpliar={ampliar} />
                 ))}
               </div>
 
@@ -173,7 +235,7 @@ function Produtos() {
         </div>
       </section>
 
-      {ampliado && <Lightbox produto={ampliado} aoFechar={() => setAmpliado(null)} />}
+      {ampliado && <Lightbox produto={ampliado} aoFechar={fechar} />}
     </>
   )
 }

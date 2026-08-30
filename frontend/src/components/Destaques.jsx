@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
+import { rotaDoProduto } from '../lib/compartilhar'
 import ProdutoCard from './ProdutoCard'
-import Lightbox from './Lightbox'
 import './Destaques.css'
 
 function Destaques() {
   const [produtos, setProdutos] = useState(null)
-  const [ampliado, setAmpliado] = useState(null)
+  const navegar = useNavigate()
 
   useEffect(() => {
     let ativo = true
@@ -34,7 +34,11 @@ function Destaques() {
 
         <div className="destaques__grid">
           {produtos.map((produto) => (
-            <ProdutoCard key={produto.id} produto={produto} aoAmpliar={setAmpliado} />
+            <ProdutoCard
+              key={produto.id}
+              produto={produto}
+              aoAmpliar={(p) => navegar(rotaDoProduto(p))}
+            />
           ))}
         </div>
 
@@ -44,8 +48,6 @@ function Destaques() {
           </Link>
         </div>
       </div>
-
-      {ampliado && <Lightbox produto={ampliado} aoFechar={() => setAmpliado(null)} />}
     </section>
   )
 }
