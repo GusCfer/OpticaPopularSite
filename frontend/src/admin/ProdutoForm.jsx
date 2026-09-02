@@ -5,6 +5,7 @@ import GaleriaImagens from './GaleriaImagens'
 const VAZIO = {
   nome: '',
   marca: '',
+  referencia: '',
   descricao: '',
   preco: '',
   precoPromocional: '',
@@ -19,6 +20,7 @@ function estadoInicial(produto) {
   return {
     nome: produto.nome || '',
     marca: produto.marca || '',
+    referencia: produto.referencia || '',
     descricao: produto.descricao || '',
     preco: produto.preco ?? '',
     precoPromocional: produto.precoPromocional ?? '',
@@ -124,6 +126,25 @@ function ProdutoForm({ produto, categorias, destaquesUsados, aoSalvar, aoCancela
             onChange={(e) => alterar('marca', e.target.value)}
             maxLength={80}
           />
+        </label>
+      </div>
+
+      <div className="campo-linha">
+        <label className="campo">
+          <span>Referência</span>
+          <input
+            value={form.referencia}
+            onChange={(e) => alterar('referencia', e.target.value)}
+            maxLength={60}
+            placeholder="Ex.: RB3025-58"
+          />
+          {/* o aviso vale mais que o rótulo: sem ele alguém escreveria aqui
+              alguma coisa achando que o cliente vê, ou deixaria de usar
+              achando que vê */}
+          <small className="campo__dica">
+            Código interno da loja. Não aparece para o cliente — mas a busca do site
+            encontra por ele.
+          </small>
         </label>
       </div>
 

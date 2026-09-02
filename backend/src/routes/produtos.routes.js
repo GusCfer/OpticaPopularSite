@@ -2,7 +2,7 @@
 
 const { Router } = require('express')
 const produtos = require('../services/produtos.service')
-const { exigirAutenticacao } = require('../middlewares/auth')
+const { exigirAutenticacao, autenticacaoOpcional } = require('../middlewares/auth')
 const env = require('../config/env')
 const { uploadGaleria, arquivosEnviados } = require('../middlewares/upload')
 
@@ -41,9 +41,11 @@ router.get('/produtos/vitrine', async (req, res, next) => {
  * Catálogo paginado. Resposta: { itens, total, pagina, porPagina, paginas }.
  * Aceita ?pagina=2&porPagina=12&categoria=solar&busca=aviador
  */
-router.get('/produtos', async (req, res, next) => {
+router.get('/produtos', autenticacaoOpcional, async (req, res, next) => {
   try {
-    const publico = !req.headers.authorization
+    // req.usuario só existe se o token foi CONFERIDO — mandar um cabeçalho
+    // qualquer não basta mais para ser tratado como painel
+    const publico = !req.usuario
     res.json(
       await produtos.listar({
         categoria: req.query.categoria,
@@ -55,6 +57,9 @@ router.get('/produtos', async (req, res, next) => {
         ativo: publico ? true : req.query.ativo === undefined ? undefined : req.query.ativo === 'true',
         // o contador de destaques do painel é do catálogo todo, não da página
         contarDestaquesTambem: !publico,
+        // a referência é código interno: acompanha a resposta só para quem está
+        // logado. A busca casa com ela nos dois casos — o valor é que não sai.
+        incluirReferencia: !publico,
       })
     )
   } catch (err) {

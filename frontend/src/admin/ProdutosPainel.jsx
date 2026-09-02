@@ -100,7 +100,7 @@ function ProdutosPainel() {
       <div className="painel__filtros">
         <input
           type="search"
-          placeholder="Buscar por nome ou marca…"
+          placeholder="Buscar por nome, marca ou referência…"
           value={busca}
           onChange={(e) => filtrarPor('busca', e.target.value)}
         />
@@ -176,6 +176,10 @@ function ProdutosPainel() {
                 <td data-rotulo="Produto">
                   <strong>{produto.nome}</strong>
                   {produto.marca && <small>{produto.marca}</small>}
+                  {/* só o painel enxerga isto: a rota pública nem devolve o campo */}
+                  {produto.referencia && (
+                    <small className="lista__referencia">Ref. {produto.referencia}</small>
+                  )}
                 </td>
                 <td data-rotulo="Categoria">{produto.categoria?.nome}</td>
                 <td data-rotulo="Preço">

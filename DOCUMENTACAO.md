@@ -135,6 +135,12 @@ precisaram de nenhuma mudança de SQL, e mexer na galeria pelo pgAdmin também a
 Apagar o produto leva as imagens junto (`ON DELETE CASCADE`), e o backend apaga os arquivos
 do disco.
 
+**`produtos.referencia`** — o código interno da loja (nota do fornecedor, etiqueta, código
+próprio). Texto livre de até 60 caracteres, opcional e **sem `UNIQUE`**: a mesma armação em
+duas cores costuma sair com a mesma referência do fornecedor, e um índice único obrigaria a
+inventar sufixos para contornar o sistema. A busca casa com ela, mas o valor **não sai nas
+respostas públicas** da API — veja a seção de rotas.
+
 **`usuarios`** — acesso ao painel. Guarda só o **hash bcrypt** da senha, nunca o texto.
 
 **`consultas`** — agendamentos. `data_hora` é `TIMESTAMP` **sem fuso**: é sempre o
@@ -269,6 +275,7 @@ O que já está implementado:
 | CORS                     | Lista fechada de origens (`CORS_ORIGINS` no `.env`)              |
 | Upload                   | Só JPG/PNG/WEBP/AVIF, máx. 5 MB, nome do arquivo gerado aleatoriamente (o nome enviado nunca toca o disco) |
 | Papéis                   | `ADMIN` cria usuários; `EDITOR` só mexe em produtos              |
+| Rota de dois públicos    | `/api/produtos` usa `autenticacaoOpcional`, que **verifica** o token em vez de só checar se o cabeçalho existe — mandar `Authorization: Bearer qualquercoisa` não promove ninguém a administrador |
 | Cadastro aberto          | Não existe — usuário novo só por `npm run criar-admin` ou por um ADMIN logado |
 | Agenda de consultas      | Nenhuma rota pública: e-mail e telefone de paciente só aparecem com token |
 | Senha do e-mail          | Senha de app do Gmail, guardada só no `.env` (que está no `.gitignore`) |
@@ -321,6 +328,12 @@ Como o banco guarda o caminho e a URL absoluta é montada na resposta
 | GET    | `/api/produtos/vitrine`    | Produtos sorteados p/ a esteira da home: `?limite=14` (teto 24) |
 | GET    | `/api/produtos/slug/:slug` | Um produto pelo slug — é o que o link compartilhável usa |
 | GET    | `/api/produtos/:id`        | Um produto                                    |
+
+A busca (`?busca=`) casa com **nome, marca e referência**. A referência, porém, nunca aparece
+na resposta pública: `/api/produtos` só devolve o campo para quem manda um token válido, e
+`destaques`, `vitrine`, `/produtos/:id` e `/produtos/slug/:slug` o omitem sempre. O efeito é
+o pretendido — quem recebeu o código pelo WhatsApp cola na busca, encontra a peça e não vê o
+código. Esconder só no CSS seria teatro: bastaria abrir as ferramentas do desenvolvedor.
 
 Sem token, `/api/produtos` devolve **só produtos ativos**. A vitrine devolve apenas peças
 ativas **e com foto** — a esteira é uma fileira de imagens, e um "sem foto" no meio abriria

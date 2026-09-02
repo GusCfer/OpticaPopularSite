@@ -25,6 +25,8 @@ const produtoSchema = z.object({
   nome: z.string().trim().min(2, 'Nome muito curto').max(120),
   descricao: z.string().trim().max(4000).optional().or(z.literal('')),
   marca: z.string().trim().max(80).optional().or(z.literal('')),
+  // código interno da loja: opcional, texto livre, pode repetir entre peças
+  referencia: z.string().trim().max(60).optional().or(z.literal('')),
   preco: numeroBR.refine((n) => n >= 0, 'Preço não pode ser negativo'),
   precoPromocional: numeroBR.optional().nullable(),
   categoriaId: z.coerce.number().int().positive('Selecione uma categoria'),
@@ -38,7 +40,7 @@ const produtoSchema = z.object({
 })
 
 const SELECT_PRODUTO = `
-  SELECT p.id, p.nome, p.slug, p.descricao, p.marca,
+  SELECT p.id, p.nome, p.slug, p.descricao, p.marca, p.referencia,
          p.preco::float8            AS preco,
          p.preco_promocional::float8 AS "precoPromocional",
          p.imagem_url  AS "imagemUrl",
@@ -69,6 +71,23 @@ function comUrlAbsoluta(produto) {
   produto.imagemUrl = paraUrlAbsoluta(produto.imagemUrl)
   produto.imagens = (produto.imagens || []).map(paraUrlAbsoluta)
   return produto
+}
+
+/**
+ * Tira a referência da resposta.
+ *
+ * Ela é código interno da loja e não deve chegar ao cliente — nem no cartão do
+ * catálogo, nem escondida no JSON que o navegador baixa. Esconder só no CSS
+ * seria teatro: bastaria abrir as ferramentas do desenvolvedor para ver tudo.
+ *
+ * A busca continua casando com ela no servidor, onde o valor nunca sai: quem
+ * recebeu o código pelo WhatsApp cola, encontra a peça, e não vê o código.
+ */
+function semReferencia(produto) {
+  if (!produto) return produto
+  const visivel = { ...produto }
+  delete visivel.referencia
+  return visivel
 }
 
 /**
@@ -127,7 +146,11 @@ function montarFiltros({ categoria, destaque, ativo, busca }) {
   }
   if (busca) {
     params.push(`%${busca}%`)
-    where.push(`(p.nome ILIKE $${params.length} OR p.marca ILIKE $${params.length})`)
+    where.push(
+      `(p.nome ILIKE $${params.length}
+        OR p.marca ILIKE $${params.length}
+        OR p.referencia ILIKE $${params.length})`
+    )
   }
 
   return { clausula: where.length ? `WHERE ${where.join(' AND ')}` : '', params }
@@ -144,6 +167,7 @@ function montarFiltros({ categoria, destaque, ativo, busca }) {
  * @returns {Promise<{itens: object[], total: number, pagina: number, porPagina: number, paginas: number, destaquesUsados?: number}>}
  */
 async function listar({
+  incluirReferencia = false,
   categoria,
   destaque,
   ativo,
@@ -179,8 +203,11 @@ async function listar({
     paramsPagina
   )
 
+  const visiveis = rows.map(comUrlAbsoluta)
+
   const resposta = {
-    itens: rows.map(comUrlAbsoluta),
+    // o catálogo público sai sem a referência; o painel recebe com ela
+    itens: incluirReferencia ? visiveis : visiveis.map(semReferencia),
     total,
     pagina: paginaLimpa,
     porPagina: porPaginaLimpo,
@@ -202,7 +229,7 @@ async function listarDestaques() {
      LIMIT $1`,
     [env.MAX_DESTAQUES]
   )
-  return rows.map(comUrlAbsoluta)
+  return rows.map(comUrlAbsoluta).map(semReferencia)
 }
 
 /**
@@ -230,20 +257,29 @@ async function listarVitrine(limite) {
      LIMIT $1`,
     [quantos]
   )
-  return rows.map(comUrlAbsoluta)
+  return rows.map(comUrlAbsoluta).map(semReferencia)
 }
 
-async function buscarPorId(id) {
+/**
+ * Um produto pelo id.
+ *
+ * Sem referência por padrão: a rota pública /api/produtos/:id usa esta função, e
+ * o padrão seguro é o que não vaza. Quem precisa do campo — criar() e
+ * atualizar(), que respondem ao painel — pede explicitamente.
+ */
+async function buscarPorId(id, { incluirReferencia = false } = {}) {
   const { rows } = await db.query(`${SELECT_PRODUTO} WHERE p.id = $1`, [id])
   if (!rows[0]) throw naoEncontrado('Produto não encontrado')
-  return comUrlAbsoluta(rows[0])
+  const produto = comUrlAbsoluta(rows[0])
+  return incluirReferencia ? produto : semReferencia(produto)
 }
 
 /** Busca pelo slug — é ele que aparece no link compartilhável do produto. */
 async function buscarPorSlug(slug) {
   const { rows } = await db.query(`${SELECT_PRODUTO} WHERE p.slug = $1`, [String(slug || '')])
   if (!rows[0]) throw naoEncontrado('Produto não encontrado')
-  return comUrlAbsoluta(rows[0])
+  // este caminho é sempre público (link compartilhado e meta tags do WhatsApp)
+  return semReferencia(comUrlAbsoluta(rows[0]))
 }
 
 async function contarDestaques() {
@@ -279,11 +315,12 @@ async function criar(dados) {
   const id = await db.transacao(async (client) => {
     const { rows } = await client.query(
       `INSERT INTO produtos
-         (nome, slug, descricao, marca, preco, preco_promocional, imagem_url, ativo, destaque, ordem_destaque, categoria_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+         (nome, slug, descricao, marca, referencia, preco, preco_promocional, imagem_url, ativo, destaque, ordem_destaque, categoria_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
        RETURNING id`,
       [
         d.nome, slug, vazioParaNull(d.descricao), vazioParaNull(d.marca),
+        vazioParaNull(d.referencia),
         d.preco, d.precoPromocional ?? null, galeria[0] ?? null,
         d.ativo, d.destaque, ordemDestaque, d.categoriaId,
       ]
@@ -292,7 +329,7 @@ async function criar(dados) {
     return rows[0].id
   })
 
-  return buscarPorId(id)
+  return buscarPorId(id, { incluirReferencia: true })
 }
 
 async function atualizar(id, dados) {
@@ -301,6 +338,9 @@ async function atualizar(id, dados) {
     nome: dados.nome ?? atual.nome,
     descricao: dados.descricao ?? atual.descricao ?? '',
     marca: dados.marca ?? atual.marca ?? '',
+    // atual vem de buscarPorId, que já devolve sem a referência — por isso o
+    // valor de reserva é lido do banco logo abaixo, e não daqui
+    referencia: dados.referencia ?? '',
     preco: dados.preco ?? atual.preco,
     precoPromocional: dados.precoPromocional ?? atual.precoPromocional,
     categoriaId: dados.categoriaId ?? atual.categoriaId,
@@ -317,6 +357,13 @@ async function atualizar(id, dados) {
 
   const slug = d.nome !== atual.nome ? await slugUnico(gerarSlug(d.nome), id) : atual.slug
 
+  // Um PUT que não mande "referencia" não pode apagar a que já estava lá: como
+  // buscarPorId esconde o campo, o valor atual é lido direto do banco.
+  const referencia =
+    dados.referencia === undefined
+      ? (await db.query('SELECT referencia FROM produtos WHERE id = $1', [id])).rows[0]?.referencia ?? null
+      : vazioParaNull(d.referencia)
+
   let ordemDestaque = atual.ordemDestaque
   if (d.destaque && !atual.destaque) ordemDestaque = (await contarDestaques()) + 1
   if (!d.destaque) ordemDestaque = null
@@ -324,14 +371,14 @@ async function atualizar(id, dados) {
   await db.transacao(async (client) => {
     await client.query(
       `UPDATE produtos SET
-          nome = $1, slug = $2, descricao = $3, marca = $4, preco = $5,
-          preco_promocional = $6, imagem_url = $7, ativo = $8, destaque = $9,
-          ordem_destaque = $10, categoria_id = $11
-        WHERE id = $12`,
+          nome = $1, slug = $2, descricao = $3, marca = $4, referencia = $5,
+          preco = $6, preco_promocional = $7, imagem_url = $8, ativo = $9,
+          destaque = $10, ordem_destaque = $11, categoria_id = $12
+        WHERE id = $13`,
       [
-        d.nome, slug, vazioParaNull(d.descricao), vazioParaNull(d.marca), d.preco,
+        d.nome, slug, vazioParaNull(d.descricao), vazioParaNull(d.marca), referencia,
         // a capa é sempre a primeira da galeria (a trigger do banco também garante)
-        d.precoPromocional ?? null, galeria[0] ?? null, d.ativo, d.destaque,
+        d.preco, d.precoPromocional ?? null, galeria[0] ?? null, d.ativo, d.destaque,
         ordemDestaque, d.categoriaId, id,
       ]
     )
@@ -343,7 +390,7 @@ async function atualizar(id, dados) {
   // com o registro ainda apontando para ele.
   apagarImagens(anteriores.filter((caminho) => !galeria.includes(caminho)))
 
-  return buscarPorId(id)
+  return buscarPorId(id, { incluirReferencia: true })
 }
 
 /** Liga/desliga o destaque respeitando o limite de 5. */
@@ -362,7 +409,7 @@ async function definirDestaque(id, destaque) {
   } else if (!destaque) {
     await db.query('UPDATE produtos SET destaque = FALSE, ordem_destaque = NULL WHERE id = $1', [id])
   }
-  return buscarPorId(id)
+  return buscarPorId(id, { incluirReferencia: true })
 }
 
 async function remover(id) {
