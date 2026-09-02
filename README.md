@@ -1,419 +1,165 @@
-# Óptica Popular — site + painel administrativo
+<h1 align="center">Óptica Popular</h1>
 
-Site institucional em React/Vite, API em Node/Express e PostgreSQL rodando no Docker.
-Produtos são cadastrados pelo painel em `/admin`, com upload de imagem, e os marcados
-como **destaque** (no máximo 5) aparecem na home. O painel também tem a aba
-**Consultas**, onde a atendente agenda os atendimentos — e o sistema manda sozinho
-um lembrete por e-mail para o paciente na véspera.
+<p align="center">
+  Site institucional e sistema de gestão para uma óptica e joalheria de bairro,
+  em Santo Antônio da Platina&nbsp;— PR.
+</p>
 
-```
-OticaPopularSap/
-├── docker-compose.yml       PostgreSQL 16 + pgAdmin 4
-├── docker/initdb/           SQL que cria as tabelas na primeira subida
-├── backend/                 API Express + PostgreSQL (node-postgres)
-├── frontend/                Site React/Vite + painel /admin
-└── start.bat                Sobe tudo de uma vez (Windows)
-```
+<p align="center">
+  <a href="https://opticapopularsap.com.br"><strong>opticapopularsap.com.br&nbsp;→</strong></a>
+</p>
 
----
-
-## 1. Primeira vez (passo a passo)
-
-Precisa ter **Docker Desktop** e **Node.js 18+** instalados.
-
-### 1.1 Subir o banco
-
-```bash
-docker compose up -d
-```
-
-Isso cria dois containers e **já cria as tabelas e as 4 categorias** automaticamente
-(o Postgres executa tudo que está em `docker/initdb/` na primeira subida):
-
-| Serviço  | Endereço                | Acesso                                        |
-| -------- | ----------------------- | --------------------------------------------- |
-| Postgres | `localhost:5432`        | usuário `otica` / senha `otica_dev_pwd`       |
-| pgAdmin  | http://localhost:5050   | `admin@oticapopular.com.br` / `admin123`      |
-
-O pgAdmin já abre com a conexão "Otica Popular" configurada — só pede a senha do banco.
-
-### 1.2 Subir a API
-
-```bash
-cd backend
-copy .env.example .env      # no Linux/Mac: cp .env.example .env
-npm install
-```
-
-Gere um segredo forte para o JWT e cole no `.env` em `JWT_SECRET`:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-```
-
-Crie o seu usuário de administrador:
-
-```bash
-npm run criar-admin
-```
-
-(ou direto: `npm run criar-admin -- "Gustavo" gustavo@email.com MinhaSenha123`)
-
-Opcional — popular o catálogo com 8 produtos de exemplo:
-
-```bash
-npm run seed
-```
-
-Suba a API:
-
-```bash
-npm run dev          # http://localhost:3333
-```
-
-### 1.3 Subir o site
-
-```bash
-cd frontend
-copy .env.example .env
-npm install
-npm run dev          # http://localhost:5173
-```
-
-Painel: **http://localhost:5173/admin**
-
-> Depois da primeira vez, é só rodar `start.bat` que ele sobe os três de uma vez.
+<p align="center">
+  <img alt="React" src="https://img.shields.io/badge/React-19-0b7285?style=flat-square" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-8-6741d9?style=flat-square" />
+  <img alt="Node" src="https://img.shields.io/badge/Node-Express%204-2b8a3e?style=flat-square" />
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-1864ab?style=flat-square" />
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-Compose-0c8599?style=flat-square" />
+</p>
 
 ---
 
-## 2. Banco de dados
-
-### Tabelas
-
-**`categorias`** — as 4 categorias fixas, já criadas pelo seed:
-
-| slug      | nome           |
-| --------- | -------------- |
-| `oculos`  | Óculos de Grau |
-| `solar`   | Óculos de Sol  |
-| `relogio` | Relógios       |
-| `joia`    | Joias          |
-
-**`produtos`** — `categoria_id` é **FOREIGN KEY** para `categorias(id)`, com
-`ON DELETE RESTRICT` (não dá para apagar uma categoria que tem produto) e
-`ON UPDATE CASCADE`.
-
-**`produto_imagens`** — a galeria: até **8 fotos por produto**, com `ordem` definindo a
-sequência do carrossel. O limite não depende do código: `UNIQUE (produto_id, ordem)` mais
-`CHECK (ordem >= 0 AND ordem < 8)` já tornam a nona linha impossível.
-
-`produtos.imagem_url` continua existindo e virou a **capa** — a foto de menor ordem, mantida
-em dia pela trigger `trg_sync_capa_produto`. Por isso a home, o catálogo e os destaques não
-precisaram de nenhuma mudança de SQL, e mexer na galeria pelo pgAdmin também acerta a capa.
-Apagar o produto leva as imagens junto (`ON DELETE CASCADE`), e o backend apaga os arquivos
-do disco.
-
-**`usuarios`** — acesso ao painel. Guarda só o **hash bcrypt** da senha, nunca o texto.
-
-**`consultas`** — agendamentos. `data_hora` é `TIMESTAMP` **sem fuso**: é sempre o
-horário local da óptica (o fuso fica em `TIMEZONE`, no `backend/.env`), então nada é
-deslocado por causa do fuso do container. `lembrete_enviado_em` guarda quando o aviso
-saiu — enquanto for `NULL`, a consulta continua na fila do lembrete.
-
-Um índice único (`uq_consultas_medico_horario`) impede marcar dois pacientes com o
-**mesmo médico no mesmo horário**. Consulta cancelada libera o horário de novo.
-
-### Regra dos 5 destaques
-
-O limite é garantido em **dois lugares**:
-
-1. Na API, com uma mensagem amigável antes de tentar gravar.
-2. No **próprio banco**, por uma trigger (`trg_limite_produtos_destaque`). Mesmo que
-   alguém rode um `UPDATE` na mão pelo pgAdmin, o Postgres recusa:
-
-```
-ERROR: LIMITE_DESTAQUES: já existem 5 produtos em destaque (máximo 5).
-```
-
-No painel, quando chega em 5/5 as estrelas vazias ficam desabilitadas e o checkbox
-"Destaque na home" trava sozinho.
-
-### Recomeçar do zero
-
-```bash
-docker compose down -v      # -v apaga o volume, ou seja, apaga os dados
-docker compose up -d        # recria as tabelas e as categorias
-```
-
----
-
-## 3. Consultas e lembretes por e-mail
-
-Na aba **Consultas** do painel a atendente cadastra o agendamento: nome do paciente,
-e-mail, telefone (opcional), nome do médico, data, horário e observações. O e-mail é
-obrigatório — é para onde o lembrete vai.
-
-### Como o lembrete funciona
-
-Todo dia, no horário de `LEMBRETES_CRON` (padrão **08:00**), a API varre as consultas
-do **dia seguinte** que ainda não receberam aviso e manda um e-mail para cada paciente.
-
-- Só marca como enviado quando o servidor de e-mail aceita a mensagem. Se a internet
-  cair, a consulta continua na fila e o aviso sai na próxima varredura.
-- Consulta **cancelada** não recebe lembrete.
-- Mudou a data ou o e-mail do paciente? O lembrete volta para a fila sozinho, para o
-  paciente não ser avisado do horário antigo.
-- A coluna **Lembrete** na tabela mostra `Na fila`, `Enviado` (com a data no tooltip)
-  ou `Falhou` (com o motivo no tooltip).
-- O botão **Enviar lembrete** manda na hora, sem esperar a véspera.
-
-### Configurar o Gmail
-
-O Gmail **não aceita a senha normal da conta** no SMTP. É preciso uma *senha de app*:
-
-1. Ative a verificação em duas etapas em <https://myaccount.google.com/security>
-2. Gere a senha em <https://myaccount.google.com/apppasswords>
-3. Cole as 16 letras no `backend/.env` (pode colar com os espaços):
-
-```ini
-SMTP_USER=seuemail@gmail.com
-SMTP_PASS=abcd efgh ijkl mnop
-OTICA_NOME=Óptica Popular
-OTICA_TELEFONE=(00) 0000-0000
-OTICA_ENDERECO=Rua Exemplo, 100 - Centro
-```
-
-Teste antes de confiar:
-
-```bash
-cd backend
-npm run testar-email                      # só confere usuário e senha
-npm run testar-email -- voce@gmail.com    # manda um lembrete de exemplo
-```
-
-No painel também tem o link **Testar conexão**, ao lado do aviso de configuração.
-
-> Enquanto `SMTP_USER`/`SMTP_PASS` estiverem vazios a API sobe normal e as consultas
-> podem ser cadastradas — só o e-mail não sai, e o painel mostra um aviso amarelo.
-
-Variáveis relacionadas, todas em `backend/.env`:
-
-| Variável           | Padrão               | Para que serve                                    |
-| ------------------ | -------------------- | ------------------------------------------------- |
-| `SMTP_HOST/PORT`   | `smtp.gmail.com:465` | Servidor de saída. 465 = SSL, 587 = STARTTLS      |
-| `SMTP_FROM`        | vazio                | Remetente. Vazio vira `"Óptica Popular" <SMTP_USER>` |
-| `TIMEZONE`         | `America/Sao_Paulo`  | Fuso do agendador e das datas das consultas       |
-| `LEMBRETES_ATIVO`  | `true`               | `false` desliga o disparo automático              |
-| `LEMBRETES_CRON`   | `0 8 * * *`          | Quando varrer a agenda (minuto hora dia mês semana) |
-| `OTICA_*`          | vazio                | Nome, telefone e endereço que aparecem no e-mail  |
-
-### Banco já criado antes dessa funcionalidade (ou de uma futura)
-
-O Postgres só roda `docker/initdb/` na primeira subida do container. Para aplicar uma
-tabela nova num banco que já existe (produção, por exemplo):
-
-```bash
-cd backend
-npm run migrar
-```
-
-**Como ele decide o que rodar:** não olha o banco — olha a pasta. Pega todo arquivo
-`docker/initdb/NN-nome.sql` com `NN` a partir de `03` (o `01` e o `02` são a base, que o
-Postgres já aplica sozinho) e roda **todos, em ordem**, sempre, mesmo os que já rodaram
-antes. Isso só é seguro porque cada um é escrito para ser **idempotente**
-(`IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP TRIGGER IF EXISTS`…) — rodar de novo algo
-que já existe não dá erro, só não faz nada.
-
-Ou seja: **para adicionar uma tabela nova no futuro, não mexa no `migrar.js`.** Só crie
-`docker/initdb/04-o-que-for.sql` seguindo esse mesmo estilo (sempre com `IF NOT EXISTS`
-ou equivalente) e rode `npm run migrar` — ele encontra sozinho. O próximo depois desse é
-`05-`, e assim por diante.
-
----
-
-## 4. Segurança
-
-O que já está implementado:
-
-| Item                     | Como                                                            |
-| ------------------------ | --------------------------------------------------------------- |
-| Senhas                   | bcrypt com custo 12 — o texto puro nunca é gravado nem devolvido |
-| Sessão                   | JWT HS256, 8h de validade, segredo no `.env`                     |
-| Força bruta              | Rate limit de 10 tentativas/15min por IP **+** bloqueio de 15min na conta após 5 erros |
-| Enumeração de e-mail     | Login sempre responde "E-mail ou senha inválidos", com tempo de resposta constante |
-| SQL injection            | 100% queries parametrizadas (`$1`, `$2`), zero concatenação      |
-| Validação de entrada     | Zod em toda rota que escreve                                     |
-| Cabeçalhos               | Helmet                                                           |
-| CORS                     | Lista fechada de origens (`CORS_ORIGINS` no `.env`)              |
-| Upload                   | Só JPG/PNG/WEBP/AVIF, máx. 5 MB, nome do arquivo gerado aleatoriamente (o nome enviado nunca toca o disco) |
-| Papéis                   | `ADMIN` cria usuários; `EDITOR` só mexe em produtos              |
-| Cadastro aberto          | Não existe — usuário novo só por `npm run criar-admin` ou por um ADMIN logado |
-| Agenda de consultas      | Nenhuma rota pública: e-mail e telefone de paciente só aparecem com token |
-| Senha do e-mail          | Senha de app do Gmail, guardada só no `.env` (que está no `.gitignore`) |
-
-**Antes de colocar no ar**, faça três coisas:
-
-1. Troque `JWT_SECRET` por um valor aleatório de verdade (a API se recusa a subir em
-   produção com o segredo de exemplo).
-2. Troque `POSTGRES_PASSWORD` e a senha do pgAdmin no `.env` da raiz.
-3. Não exponha a porta 5432 nem o pgAdmin na internet.
-
----
-
-## 5. Imagens dos produtos
-
-Cada produto aceita **até 8 fotos**. No painel elas são escolhidas pelo arquivo ou tiradas
-na hora pela câmera do celular (`<input capture>`, que abre o app de câmera do aparelho), e
-o próprio navegador reduz cada uma para 1600px em WebP **antes** de enviar: uma foto de 5 MB
-vira uns 200 KB. Isso poupa o 4G da loja, o disco do servidor e o tempo de quem abre o site —
-e, de quebra, o recorte no canvas descarta o EXIF, então a localização GPS da foto não vai
-parar num arquivo público.
-
-No site, clicar em qualquer produto abre o carrossel: arrasta para trocar de foto, mostra
-"Foto 2 de 8", tem miniaturas e zoom por toque (ou clique, no desktop). O carrossel é CSS
-puro — `scroll-snap` —, sem biblioteca: a funcionalidade inteira custou cerca de 2 KB gzip.
-
-Os arquivos ficam em `backend/uploads/produtos/`, servidos pela própria API em
-`/uploads/produtos/<arquivo>`. O banco guarda só o caminho relativo.
-
-**Para migrar pra nuvem depois** (S3, Cloudinary, etc.), só dois arquivos mudam:
-
-- `backend/src/middlewares/upload.js` — troca o `multer.diskStorage` pelo storage do provedor.
-- `backend/src/app.js` — remove o `express.static('/uploads')`.
-
-Como o banco guarda o caminho e a URL absoluta é montada na resposta
-(`API_PUBLIC_URL + caminho`), os produtos já cadastrados continuam funcionando.
-
----
-
-## 6. Rotas da API
-
-### Públicas
-
-| Método | Rota                       | O que faz                                    |
-| ------ | -------------------------- | -------------------------------------------- |
-| GET    | `/api/health`              | Ping                                          |
-| GET    | `/api/categorias`          | Categorias + quantos produtos cada uma tem    |
-| GET    | `/api/produtos/destaques`  | Os até 5 destaques ativos (usado na home)     |
-| GET    | `/api/produtos`            | Catálogo **paginado**: `?categoria=solar&busca=aviador&pagina=2&porPagina=12` |
-| GET    | `/api/produtos/:id`        | Um produto                                    |
-
-Sem token, `/api/produtos` devolve **só produtos ativos**.
-
-`/api/produtos` responde `{ itens, total, pagina, porPagina, paginas }` — um objeto, não um
-array, porque a navegação de páginas precisa saber quantos existem no total. Página fora do
-intervalo devolve a última em vez de uma tela vazia, e `porPagina` é limitado a 60. Com token,
-vem também `destaquesUsados`, contado no catálogo inteiro e não só na página aberta.
-
-Todo produto vem com `imagens: []` — a galeria em ordem, já com URL absoluta — e
-`imagemUrl`, que é a primeira delas. Para gravar, mande `imagens` no POST/PUT do produto; um
-request antigo que mande só `imagemUrl` continua funcionando e vira uma galeria de uma foto.
-
-### Autenticação
-
-| Método | Rota                    | O que faz                            |
-| ------ | ----------------------- | ------------------------------------ |
-| POST   | `/api/auth/login`       | `{ email, senha }` → `{ token, usuario }` |
-| GET    | `/api/auth/eu`          | Dados do usuário logado              |
-| POST   | `/api/auth/senha`       | `{ senhaAtual, senhaNova }`          |
-| GET    | `/api/auth/usuarios`    | Lista usuários (só ADMIN)            |
-| POST   | `/api/auth/usuarios`    | Cria usuário (só ADMIN)              |
-
-### Painel (exigem `Authorization: Bearer <token>`)
-
-| Método | Rota                            | O que faz                          |
-| ------ | ------------------------------- | ---------------------------------- |
-| POST   | `/api/upload`                   | Envia até 8 imagens → `{ imagens: [{ caminho, url }] }` |
-| POST   | `/api/produtos`                 | Cadastra                            |
-| PUT    | `/api/produtos/:id`             | Atualiza                            |
-| PATCH  | `/api/produtos/:id/destaque`    | `{ destaque: true/false }`          |
-| DELETE | `/api/produtos/:id`             | Exclui (e apaga a imagem do disco)  |
-
-### Consultas (todas exigem token — agenda é dado de paciente)
-
-| Método | Rota                                | O que faz                                  |
-| ------ | ----------------------------------- | ------------------------------------------ |
-| GET    | `/api/consultas`                    | Lista. Filtros: `?status=&busca=&de=&ate=` |
-| GET    | `/api/consultas/resumo`             | Contadores de hoje, amanhã e falhas        |
-| GET    | `/api/consultas/medicos`            | Médicos já usados (autocomplete do form)   |
-| GET    | `/api/consultas/:id`                | Uma consulta                                |
-| POST   | `/api/consultas`                    | Agenda                                      |
-| PUT    | `/api/consultas/:id`                | Atualiza (remarcar recoloca o lembrete na fila) |
-| PATCH  | `/api/consultas/:id/status`         | `{ status: AGENDADA/REALIZADA/CANCELADA }` |
-| DELETE | `/api/consultas/:id`                | Exclui                                      |
-| POST   | `/api/consultas/:id/lembrete`       | Manda o lembrete agora                      |
-| POST   | `/api/consultas/lembretes/rodar`    | Roda a varredura do dia na mão              |
-| GET    | `/api/consultas/email/status`       | Se o SMTP está configurado                  |
-| POST   | `/api/consultas/email/testar`       | Testa usuário/senha sem enviar nada         |
-
-Erros vêm sempre como `{ erro, codigo, detalhes? }`.
-
----
-
-## 7. Publicar no servidor
-
-O passo a passo completo está em **[`deploy/DEPLOY.md`](deploy/DEPLOY.md)** — desde
-instalar o Node até configurar o Cloudflare Tunnel, para um Ubuntu Server com CasaOS.
-
-Como fica lá dentro:
+## O que é
+
+A Óptica Popular vendia por WhatsApp e por vitrine física. Não havia catálogo online, o
+horário de sábado mudava conforme a semana do mês (e ninguém acertava), e os agendamentos
+de exame de vista viviam numa agenda de papel — com o esquecimento do paciente saindo caro
+para a loja.
+
+Este projeto é a resposta a esses três problemas: um site público com o catálogo sempre
+atualizado, um painel administrativo que a atendente usa do próprio celular, e um agendador
+que dispara os lembretes por e-mail sozinho.
+
+Está **no ar e em uso pela loja**, num servidor Ubuntu caseiro exposto por Cloudflare
+Tunnel — sem nenhuma porta aberta no roteador.
+
+<!--
+  Capturas de tela: coloque as imagens em docs/img/ e descomente.
+
+  | Home | Catálogo | Painel |
+  | :--: | :------: | :----: |
+  | <img src="docs/img/home.png" width="260"> | <img src="docs/img/catalogo.png" width="260"> | <img src="docs/img/painel.png" width="260"> |
+-->
+
+## O que ele faz
+
+**Para quem visita**
+
+- Catálogo paginado com busca e filtro por categoria, tudo refletido na URL — o link de uma
+  busca é compartilhável e o botão voltar do navegador funciona de verdade.
+- Cada peça tem **link próprio** (`/produto/aviator-classic`). Colado no WhatsApp, ele vira
+  uma prévia com foto, nome e preço; aberto, cai direto na peça em vez do catálogo.
+- Galeria de até 8 fotos por produto, com carrossel, zoom por toque e indicador "Foto 2 de 8".
+- Uma vitrine em esteira contínua na home, sorteada a cada visita.
+- A seção **Visite a loja** responde "está aberto agora?" em tempo real, com a semana
+  inteira, o mapa e o WhatsApp a um toque.
+
+**Para quem administra**
+
+- Painel em `/admin`, responsivo de verdade — as fotos dos produtos são tiradas pela câmera
+  do celular ali mesmo.
+- Cadastro de produtos com até 8 imagens, destaques (limitados a 5), ativação e busca.
+- Agenda de consultas com médico, paciente e horário, protegida contra choque de horários.
+- **Lembrete automático por e-mail** na véspera de cada consulta, com fila que se recupera
+  sozinha se a internet cair.
+
+## Decisões que valem comentar
+
+Algumas escolhas do projeto que foram além do "funciona":
+
+**As regras de negócio moram no banco, não só no código.** O limite de 8 fotos por produto
+não é um `if`: é `UNIQUE (produto_id, ordem)` somado a `CHECK (ordem < 8)` — a nona linha é
+impossível de existir. O teto de 5 destaques é uma trigger que recusa até um `UPDATE` feito
+à mão pelo pgAdmin. E a capa do produto é mantida em dia por outra trigger, o que permitiu
+adicionar a galeria inteira sem mudar uma linha do SQL da home.
+
+**A imagem é otimizada antes de sair do celular.** O navegador redimensiona cada foto para
+1600px em WebP no `canvas` antes do upload: uma foto de 5 MB vira ~200 KB. Poupa o 4G da
+loja, o disco do servidor e o tempo de quem abre o site — e, de quebra, o reencode descarta
+o EXIF, então a localização GPS da foto nunca vai parar num arquivo público.
+
+**A prévia do WhatsApp exigiu sair do SPA.** O robô que gera a prévia do link não executa
+JavaScript, então preencher as meta tags depois que o React sobe não adianta. A rota
+`/produto/:slug` é servida pelo Express: ele lê o `index.html` compilado e injeta as tags
+Open Graph daquela peça no `<head>`, mantendo tudo o mais idêntico.
+
+**Carrosséis sem biblioteca.** O da galeria é `scroll-snap` puro — o arrasto, a inércia e a
+parada no slide certo são do próprio sistema operacional, que faz isso melhor que qualquer
+JS. O da vitrine é uma animação CSS de `transform`, que roda na GPU e não engasga quando a
+pessoa rola a página. Os dois somados custam poucos KB.
+
+**Infraestrutura sem porta aberta.** Só o `cloudflared` fala com a internet; Nginx, API e
+banco vivem todos no `localhost`. Nada precisa ser liberado no roteador ou no firewall.
+
+## Arquitetura
 
 ```
 Internet → Cloudflare → cloudflared → Nginx :8080 ─┬→ site compilado (/var/www/otica)
-                                                   └→ /api e /uploads → API :3333 (systemd)
+                                                   ├→ /produto/  ─┐
+                                                   └→ /api, /uploads ─→ API :3333 (systemd)
                                                                               ↓
                                                                 PostgreSQL :5432 (Docker)
 ```
 
-Só o `cloudflared` fala com a internet. Nginx, API e banco ficam todos no `localhost` —
-**nenhuma porta precisa ser aberta no firewall**. Site e painel ficam na mesma origem do
-`/api`, então não existe CORS entre eles e o domínio não fica gravado dentro do
-JavaScript compilado.
+Site e painel ficam na mesma origem do `/api`: não existe CORS entre eles, e o domínio não
+fica gravado dentro do JavaScript compilado.
 
-O Nginx escuta na **8080** porque a 80 é do painel do CasaOS. Como quem fala com ele é
-só o `cloudflared`, no próprio servidor, a porta escolhida é indiferente.
+## Stack
 
-Os arquivos usados no deploy ficam em `deploy/`:
+| Camada        | O que foi usado                                                          |
+| ------------- | ------------------------------------------------------------------------ |
+| Front-end     | React 19, Vite 8, React Router 7, CSS puro (sem framework de UI)          |
+| Back-end      | Node.js, Express 4, node-postgres, Zod, JWT, bcrypt, Multer, Nodemailer, node-cron |
+| Banco         | PostgreSQL 16 — constraints, triggers e índices carregando regra de negócio |
+| Infra         | Docker Compose, Nginx, systemd, Cloudflare Tunnel, Ubuntu Server          |
 
-| Arquivo                          | O que é                                              |
-| -------------------------------- | ---------------------------------------------------- |
-| `DEPLOY.md`                      | O passo a passo                                       |
-| `otica-api.service`              | Serviço do systemd que roda a API                     |
-| `otica-sudoers`                  | Deixa o usuário `otica` reiniciar só a própria API     |
-| `nginx-otica.conf`               | Site do Nginx (porta 8080)                            |
-| `cloudflared-config.example.yml` | Modelo do `/etc/cloudflared/config.yml`               |
-| `atualizar.sh`                   | Publica uma versão nova                               |
-| `backup-banco.sh`                | Dump do Postgres + tar das fotos, com retenção de 14 dias |
+Nenhuma biblioteca de componentes, de carrossel ou de máscara: o front é escrito à mão, e o
+bundle final fica em torno de 90 KB gzip.
+
+## Segurança
+
+bcrypt com custo 12, JWT de 8h, rate limit por IP **e** bloqueio por conta, respostas de
+login com tempo constante para não vazar quais e-mails existem, 100% de queries
+parametrizadas, validação com Zod em toda rota que escreve, Helmet, CORS de lista fechada,
+upload restrito por tipo e tamanho com nome de arquivo gerado no servidor, e nenhuma rota
+pública que exponha dado de paciente. Não existe cadastro aberto.
+
+A tabela completa está na [documentação técnica](DOCUMENTACAO.md#4-segurança).
+
+## Rodando localmente
+
+Precisa de Docker e Node 18+.
+
+```bash
+docker compose up -d                       # Postgres + pgAdmin, já com as tabelas
+
+cd backend && cp .env.example .env
+npm install && npm run criar-admin && npm run dev
+
+cd ../frontend && cp .env.example .env
+npm install && npm run dev                 # http://localhost:5173
+```
+
+O passo a passo detalhado, a referência do banco e todas as rotas da API estão em
+**[DOCUMENTACAO.md](DOCUMENTACAO.md)**. Para publicar num servidor do zero — incluindo o
+Cloudflare Tunnel — veja **[deploy/DEPLOY.md](deploy/DEPLOY.md)**.
+
+## Estrutura
+
+```
+OticaPopularSap/
+├── backend/            API Express + PostgreSQL
+│   └── src/            rotas · services · middlewares · jobs (lembretes)
+├── frontend/           Site React/Vite e painel /admin
+│   └── src/            pages · components · admin · lib · services
+├── docker/initdb/      SQL versionado: tabelas, triggers e migrações
+├── deploy/             systemd, Nginx, Cloudflare, backup e publicação
+└── DOCUMENTACAO.md     manual técnico completo
+```
 
 ---
 
-## 7.11 A seção "Visite a loja"
-
-Substituiu os depoimentos (texto genérico que não dizia nada sobre a loja) e absorveu a
-seção de contato, que tinha um formulário sem destino nenhum. Mantém a âncora `#contato`.
-
-Mostra se a loja está **aberta agora**, calculado no navegador e recalculado a cada minuto,
-mais a semana inteira com o dia de hoje destacado, endereço com link para o mapa, WhatsApp e
-telefone clicável.
-
-A regra que justifica o cálculo está em `frontend/src/lib/horarios.js`: **o 1º e o 2º sábado
-do mês abrem 9h às 17h, os demais 8h às 12h**. Escrita numa linha corrida, ninguém decifra;
-o site passa a responder por quem perguntaria no WhatsApp. Se esse horário mudar, é só esse
-arquivo que se mexe — as constantes ficam no topo dele.
-
----
-
-## 8. Páginas do site
-
-| Rota                        | O que é                                                     |
-| --------------------------- | ----------------------------------------------------------- |
-| `/`                         | Home — hero, destaques (até 5), diferenciais, **Visite a loja** |
-| `/produtos`                 | Catálogo completo, com filtro por categoria e busca          |
-| `/produtos?categoria=solar` | Catálogo já filtrado (o link é compartilhável)               |
-| `/admin/login`              | Login do painel                                              |
-| `/admin`                    | Painel: abas **Produtos** e **Consultas** (exige login)      |
-
-Clicar na foto de qualquer produto — na home ou no catálogo — abre a imagem ampliada.
-Fecha no `Esc`, no `×` ou clicando fora.
-
-Há três caminhos até o catálogo: o botão **Ver produtos** no hero, o link **Produtos** no
-menu e o botão **Ver todos os produtos** no fim da seção de destaques.
+<p align="center">
+  Desenvolvido por <strong>Gustavo Carvalho Fernandes</strong> ·
+  <a href="https://opticapopularsap.com.br">ver o projeto no ar</a>
+</p>
