@@ -41,7 +41,7 @@ const env = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '8h',
   UPLOAD_DIR: path.resolve(process.cwd(), process.env.UPLOAD_DIR || './uploads'),
   UPLOAD_MAX_BYTES: Number(process.env.UPLOAD_MAX_MB || 5) * 1024 * 1024,
-  MAX_DESTAQUES: 5,
+  MAX_DESTAQUES: 4,
   // teto da galeria; o banco garante o mesmo número (ordem de 0 a 7)
   MAX_IMAGENS_PRODUTO: 8,
   // tamanho padrão da página do catálogo e do painel

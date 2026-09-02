@@ -1,7 +1,7 @@
 .produto-card {
   /* cabem os 5 destaques numa linha no desktop; com menos, ficam centralizados */
   flex: 1 1 200px;
-  max-width: 272px;
+  max-width: 292px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 20px;
@@ -168,7 +168,7 @@
 
 .produto-card__preco strong {
   font-size: 22px;
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   color: var(--text);
 }
 

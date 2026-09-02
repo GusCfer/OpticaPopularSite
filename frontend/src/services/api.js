@@ -77,6 +77,8 @@ export const api = {
   },
   /** Um produto pelo slug — é assim que o link compartilhado abre a foto certa. */
   produtoPorSlug: (slug) => request(`/api/produtos/slug/${encodeURIComponent(slug)}`),
+  /** Vitrine da home: produtos sorteados pelo servidor, só os que têm foto. */
+  vitrine: (limite = 12) => request(`/api/produtos/vitrine?limite=${Number(limite) || 12}`),
 
   // ---- autenticação ----
   login: (email, senha) => request('/api/auth/login', { method: 'POST', body: { email, senha } }),
@@ -132,7 +134,7 @@ export const api = {
 
 }
 
-export const MAX_DESTAQUES = 5
+export const MAX_DESTAQUES = 4
 export const MAX_IMAGENS = 8
 
 export const STATUS_CONSULTA = {

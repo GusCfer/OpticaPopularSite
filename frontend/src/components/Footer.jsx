@@ -16,13 +16,13 @@ function Footer() {
 
         <nav className="footer__nav">
           <a href="/produtos">Produtos</a>
-          <a href="/#diferenciais">Diferenciais</a>
+          <a href="/#vitrine">Vitrine</a>
           <a href="/#contato">Visite a loja</a>
         </nav>
       </div>
 
       <div className="container footer__bottom">
-        <span>&copy; {year} Óptica Popular. Todos os direitos reservados.</span>
+        <span>&copy; {year} Óptica Popular. Todos os direitos reservados. - Desenvolvido por Carvalho </span>
       </div>
     </footer>
   )

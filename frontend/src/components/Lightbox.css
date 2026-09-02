@@ -16,6 +16,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -37,6 +38,7 @@
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease;
+  z-index: 99999;
 }
 
 .lightbox__fechar:hover {
@@ -132,8 +134,13 @@
   transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
-.lightbox__seta--antes { left: 10px; }
-.lightbox__seta--depois { right: 10px; }
+.lightbox__seta--antes {
+  left: 10px;
+}
+
+.lightbox__seta--depois {
+  right: 10px;
+}
 
 .lightbox__seta:disabled {
   opacity: 0.25;
@@ -168,7 +175,9 @@
   pointer-events: none;
 }
 
-.lightbox__posicao { left: 10px; }
+.lightbox__posicao {
+  left: 10px;
+}
 
 .lightbox__dica-zoom {
   right: 10px;
@@ -239,6 +248,7 @@
 .lightbox__legenda strong {
   display: block;
   font-family: var(--font-heading);
+  font-weight: bold;
   font-size: 20px;
 }
 
@@ -251,13 +261,15 @@
 }
 
 .lightbox__preco {
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 22px;
+  font-weight: bold;
   white-space: nowrap;
 }
 
 .lightbox__preco s {
   font-size: 15px;
+  font-weight: normal;
   color: var(--text-muted);
   font-family: var(--font-body);
 }
@@ -353,6 +365,7 @@
 
   .lightbox__preco {
     font-size: 19px;
+    font-weight: bold;
   }
 
   .lightbox__acoes {

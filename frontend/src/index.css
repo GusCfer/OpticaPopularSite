@@ -28,8 +28,9 @@
   --border-inverse: rgba(244, 236, 225, 0.14);
   --shadow: 0 20px 40px -20px rgba(18, 13, 11, 0.35);
 
-  --font-heading: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-heading: 'Caacupé One', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+
 
   --container: 1180px;
   /* altura do header fixo — usada para o scroll das âncoras não ficar por baixo dele */

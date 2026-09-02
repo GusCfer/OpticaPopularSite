@@ -26,6 +26,18 @@ router.get('/produtos/destaques', async (_req, res, next) => {
 })
 
 /**
+ * Vitrine da home: produtos sorteados, com foto. ?limite=14 (padrão 12, teto 24).
+ * Precisa vir antes de /produtos/:id, senão "vitrine" seria lido como um id.
+ */
+router.get('/produtos/vitrine', async (req, res, next) => {
+  try {
+    res.json(await produtos.listarVitrine(req.query.limite))
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
  * Catálogo paginado. Resposta: { itens, total, pagina, porPagina, paginas }.
  * Aceita ?pagina=2&porPagina=12&categoria=solar&busca=aviador
  */

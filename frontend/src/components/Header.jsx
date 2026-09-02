@@ -5,7 +5,7 @@ import './Header.css'
 
 // âncoras que só existem na home
 const ancoras = [
-  { hash: '#diferenciais', label: 'Diferenciais' },
+  { hash: '#vitrine', label: 'Vitrine' },
   // o rótulo acompanha o título da seção: "Visite a loja" diz o que tem lá
   { hash: '#contato', label: 'Visite a loja' },
 ]

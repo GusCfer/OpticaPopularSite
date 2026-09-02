@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import Hero from '../components/Hero'
 import Destaques from '../components/Destaques'
-import Features from '../components/Features'
+import VitrineCarrossel from '../components/VitrineCarrossel'
 import VisiteALoja from '../components/VisiteALoja'
 
 function Home() {
@@ -21,7 +21,7 @@ function Home() {
     <>
       <Hero />
       <Destaques />
-      <Features />
+      <VitrineCarrossel />
       <VisiteALoja />
     </>
   )

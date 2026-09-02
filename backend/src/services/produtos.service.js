@@ -205,6 +205,34 @@ async function listarDestaques() {
   return rows.map(comUrlAbsoluta)
 }
 
+/**
+ * Produtos da vitrine da home, em ordem sorteada a cada carregamento.
+ *
+ * Só entram peças ATIVAS e COM FOTO: a esteira é uma fileira de imagens em
+ * movimento, e um "sem foto" no meio abre um buraco cinza que estraga a fileira
+ * inteira. Quem não tem foto continua aparecendo normalmente no catálogo.
+ *
+ * O ORDER BY random() é caro em tabela grande porque sorteia linha a linha —
+ * aqui o catálogo é de centenas de itens, não de milhões, e o custo é
+ * irrelevante perto de trazer tudo e sortear no Node.
+ */
+async function listarVitrine(limite) {
+  // teto baixo de propósito: cada item da esteira é uma imagem baixada, e o
+  // ganho visual de passar de ~20 produtos é nenhum
+  const quantos = Math.min(Math.max(Number(limite) || 12, 1), 24)
+
+  const { rows } = await db.query(
+    `${SELECT_PRODUTO}
+     WHERE p.ativo = TRUE
+       AND p.imagem_url IS NOT NULL
+       AND btrim(p.imagem_url) <> ''
+     ORDER BY random()
+     LIMIT $1`,
+    [quantos]
+  )
+  return rows.map(comUrlAbsoluta)
+}
+
 async function buscarPorId(id) {
   const { rows } = await db.query(`${SELECT_PRODUTO} WHERE p.id = $1`, [id])
   if (!rows[0]) throw naoEncontrado('Produto não encontrado')
@@ -387,6 +415,6 @@ async function listarCategorias() {
 }
 
 module.exports = {
-  listar, listarDestaques, buscarPorId, buscarPorSlug, criar, atualizar, definirDestaque,
+  listar, listarDestaques, listarVitrine, buscarPorId, buscarPorSlug, criar, atualizar, definirDestaque,
   remover, contarDestaques, listarCategorias, paraCaminhoRelativo,
 }

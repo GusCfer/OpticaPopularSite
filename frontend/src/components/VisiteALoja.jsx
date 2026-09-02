@@ -8,9 +8,17 @@ const ENDERECO = 'R. Mal. Deodoro da Fonseca, 922'
 const BAIRRO = 'Centro — Santo Antônio da Platina, PR'
 const CEP = '86430-000'
 
+const ENDERECO_COMPLETO = `${ENDERECO}, ${BAIRRO}, ${CEP}`
+
 const MAPA = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-  `${ENDERECO}, ${BAIRRO}, ${CEP}`
+  ENDERECO_COMPLETO
 )}`
+
+// Mapa embutido SEM chave de API: o "output=embed" é a versão pública e gratuita
+// do Google Maps. A alternativa (Static Maps) exige chave e cartão cadastrado.
+const MAPA_EMBUTIDO = `https://www.google.com/maps?q=${encodeURIComponent(
+  ENDERECO_COMPLETO
+)}&z=16&output=embed`
 
 /**
  * "Visite a loja": o que alguém procura no site de uma loja física — se está
@@ -72,6 +80,22 @@ function VisiteALoja() {
 
           {/* ---------- endereço e contato ---------- */}
           <div className="visite__bloco">
+            {/*
+              Miniatura do mapa acima do endereço: quem procura uma loja física
+              quer reconhecer a esquina antes de ler a rua. O loading="lazy" é o
+              que impede que ela pese na abertura da home — o mapa só é baixado
+              quando a pessoa rola até aqui, e ele sozinho passa de 400 KB.
+            */}
+            <div className="visite__mapa">
+              <iframe
+                src={MAPA_EMBUTIDO}
+                title={`Mapa: ${ENDERECO}`}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
             <address className="visite__endereco">
               <strong>{ENDERECO}</strong>
               <span>{BAIRRO}</span>

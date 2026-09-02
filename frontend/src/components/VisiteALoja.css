@@ -113,6 +113,26 @@
   color: var(--brown-300);
 }
 
+/* ------------------------- miniatura do mapa ------------------------ */
+
+.visite__mapa {
+  /* proporção fixa: sem ela o iframe nasce com os 150px de altura padrão do
+     navegador e o mapa fica uma tarja */
+  aspect-ratio: 16 / 10;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  /* cor de espera enquanto o mapa não chega — melhor que um retângulo branco */
+  background: var(--bg);
+}
+
+.visite__mapa iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
 /* ---------------------------- endereço ----------------------------- */
 
 .visite__endereco {
@@ -191,6 +211,13 @@
 
   .visite__endereco strong {
     font-size: 18px;
+  }
+
+  /* no celular o mapa fica mais baixo: em 16/10 ele empurrava o endereço e os
+     botões para fora da tela, e é o contato que a pessoa veio buscar */
+  .visite__mapa {
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
   }
 
   .visite__acoes .btn {

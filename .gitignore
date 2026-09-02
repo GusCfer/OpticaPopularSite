@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 .env.local
+.env.example
 *.log
 
 # imagens enviadas pelo painel (ficam no disco local)
