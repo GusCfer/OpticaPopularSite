@@ -3,13 +3,13 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 28px;
+  margin-top: 40px;
 }
 
 .paginacao__numeros {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -17,22 +17,24 @@
 
 .paginacao__numero,
 .paginacao__seta {
-  min-width: 42px;
-  min-height: 42px;
-  padding: 0 10px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 999px;
   background: var(--bg-elevated);
   color: var(--text);
   font: inherit;
   font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    color 0.15s ease;
+    border-color 0.25s var(--ease),
+    background-color 0.25s var(--ease),
+    color 0.25s var(--ease),
+    transform 0.25s var(--ease);
 }
 
 .paginacao__seta {
@@ -44,6 +46,7 @@
   .paginacao__numero:not(.is-atual):not(:disabled):hover,
   .paginacao__seta:not(:disabled):hover {
     border-color: var(--brown-300);
+    transform: translateY(-1px);
   }
 }
 
@@ -59,7 +62,7 @@
 }
 
 .paginacao__gap {
-  padding: 0 2px;
+  padding: 0 4px;
   color: var(--text-muted);
 }
 
@@ -74,7 +77,7 @@
 
 @media (max-width: 600px) {
   .paginacao {
-    margin-top: 20px;
+    margin-top: 24px;
     gap: 12px;
   }
 

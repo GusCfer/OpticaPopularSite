@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fraseDoEstado, proximosSeteDias } from '../lib/horarios'
+import { useRevela } from '../lib/useRevela'
 import './VisiteALoja.css'
 
 const WHATSAPP = '5543996335759'
@@ -33,6 +34,7 @@ function VisiteALoja() {
   // recalcula a cada minuto: quem deixa a aba aberta não fica vendo "aberto"
   // depois de a loja ter fechado
   const [agora, setAgora] = useState(() => new Date())
+  const revelaRef = useRevela()
 
   useEffect(() => {
     const id = setInterval(() => setAgora(new Date()), 60_000)
@@ -43,16 +45,19 @@ function VisiteALoja() {
   const semana = proximosSeteDias(agora)
 
   return (
-    <section id="contato" className="section visite">
+    <section id="contato" className="section visite" ref={revelaRef}>
       <div className="container">
-        <div className="section-head">
+        <div className="section-head revela">
           <span className="eyebrow">Onde nos encontrar</span>
-          <h2>Visite a loja</h2>
+          <h2>
+            Visite <em>a loja</em>
+          </h2>
+          <p>Passe para experimentar as armações com calma ou fale com a gente pelo WhatsApp.</p>
         </div>
 
         <div className="visite__grid">
           {/* ---------- horários ---------- */}
-          <div className="visite__bloco">
+          <div className="visite__bloco visite__cartao revela">
             <p className={`visite__estado ${estado.aberta ? 'is-aberta' : ''}`}>
               <span className="visite__ponto" aria-hidden="true" />
               <strong>{estado.texto}</strong>
@@ -79,7 +84,7 @@ function VisiteALoja() {
           </div>
 
           {/* ---------- endereço e contato ---------- */}
-          <div className="visite__bloco">
+          <div className="visite__bloco revela">
             {/*
               Miniatura do mapa acima do endereço: quem procura uma loja física
               quer reconhecer a esquina antes de ler a rua. O loading="lazy" é o

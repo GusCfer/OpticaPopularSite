@@ -4,56 +4,67 @@
 
 .visite__grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  grid-template-columns: 1fr 1.08fr;
+  gap: 56px;
   align-items: start;
 }
 
 .visite__bloco {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
+}
+
+/* cartão acolhedor para os horários */
+.visite__cartao {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  box-shadow: var(--shadow-sm);
 }
 
 /* ---------------------------- estado atual ------------------------- */
 
 .visite__estado {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   align-self: flex-start;
-  padding: 9px 16px;
+  padding: 8px 16px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  font-size: 14px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  font-size: 13.5px;
+  box-shadow: var(--shadow-sm);
 }
 
 .visite__ponto {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--text-muted);
+  background: var(--brown-300);
   flex: 0 0 auto;
 }
 
 .visite__estado.is-aberta {
-  border-color: #b7d8c2;
-  background: #eef7f1;
+  border-color: var(--gold);
+  background: var(--bg-elevated);
 }
 
 .visite__estado.is-aberta .visite__ponto {
-  background: #2f6b46;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px var(--sand);
 }
 
 .visite__estado.is-aberta strong {
-  color: #2f6b46;
+  color: var(--primary);
 }
 
 .visite__detalhe {
   color: var(--text-muted);
-  font-size: 13.5px;
+  font-size: 13px;
 }
 
 /* ---------------------------- tabela de horários ------------------- */
@@ -66,12 +77,13 @@
 
 .visite__legenda {
   text-align: left;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  padding-bottom: 10px;
+  color: var(--brown-500);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
 
 .visite__horarios tr {
@@ -85,19 +97,21 @@
 .visite__horarios th {
   text-align: left;
   font-weight: 500;
-  padding: 9px 0;
+  padding: 11px 0;
   color: var(--text);
 }
 
 .visite__horarios th small {
   display: block;
   font-size: 11.5px;
+  font-weight: 400;
   color: var(--text-muted);
+  margin-top: 1px;
 }
 
 .visite__horarios td {
   text-align: right;
-  padding: 9px 0;
+  padding: 11px 0;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -105,8 +119,19 @@
 
 .visite__horarios .is-hoje th,
 .visite__horarios .is-hoje td {
-  font-weight: 700;
-  color: var(--text);
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.visite__horarios .is-hoje th::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .visite__horarios .is-fechado td {
@@ -119,17 +144,20 @@
   /* proporção fixa: sem ela o iframe nasce com os 150px de altura padrão do
      navegador e o mapa fica uma tarja */
   aspect-ratio: 16 / 10;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  border: 1px solid var(--border);
-  /* cor de espera enquanto o mapa não chega — melhor que um retângulo branco */
+  border: 1px solid var(--border-strong);
+  padding: 6px;
+  /* moldura creme em volta do mapa */
   background: var(--bg);
+  box-shadow: var(--shadow);
 }
 
 .visite__mapa iframe {
   width: 100%;
   height: 100%;
   border: 0;
+  border-radius: calc(var(--radius-lg) - 6px);
   display: block;
 }
 
@@ -138,37 +166,26 @@
 .visite__endereco {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   font-style: normal;
   font-size: 15px;
   color: var(--text-muted);
+  padding-top: 4px;
 }
 
 .visite__endereco strong {
   font-family: var(--font-heading);
-  font-size: 21px;
+  font-weight: 500;
+  font-size: 24px;
+  letter-spacing: -0.015em;
   color: var(--text);
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .visite__acoes {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-}
-
-/* variante clara do botão: o btn-outline do site é feito para fundo escuro */
-.btn-claro {
-  background: var(--bg);
-  color: var(--text);
-  border-color: var(--border);
-}
-
-@media (hover: hover) {
-  .btn-claro:hover {
-    border-color: var(--brown-300);
-    background: var(--bg-elevated);
-  }
 }
 
 .visite__telefone {
@@ -186,38 +203,53 @@
 @media (max-width: 860px) {
   .visite__grid {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 36px;
   }
 }
 
 @media (max-width: 600px) {
   .visite__grid {
-    gap: 26px;
+    gap: 24px;
   }
 
   .visite__bloco {
-    gap: 14px;
+    gap: 16px;
+  }
+
+  .visite__cartao {
+    padding: 20px 18px;
+    border-radius: var(--radius);
   }
 
   .visite__estado {
     align-self: stretch;
     justify-content: center;
-    font-size: 13.5px;
+    font-size: 13px;
   }
 
   .visite__horarios {
-    font-size: 14px;
+    font-size: 13.5px;
+  }
+
+  .visite__horarios th,
+  .visite__horarios td {
+    padding: 9px 0;
   }
 
   .visite__endereco strong {
-    font-size: 18px;
+    font-size: 19px;
   }
 
   /* no celular o mapa fica mais baixo: em 16/10 ele empurrava o endereço e os
      botões para fora da tela, e é o contato que a pessoa veio buscar */
   .visite__mapa {
     aspect-ratio: 16 / 9;
-    border-radius: 14px;
+    border-radius: var(--radius);
+    padding: 4px;
+  }
+
+  .visite__mapa iframe {
+    border-radius: calc(var(--radius) - 4px);
   }
 
   .visite__acoes .btn {

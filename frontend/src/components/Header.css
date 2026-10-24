@@ -2,8 +2,39 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: var(--bg-dark);
   border-bottom: 1px solid var(--border-inverse);
+  transition: border-color 0.3s var(--ease);
+}
+
+/* o fundo mora num pseudo-elemento: backdrop-filter direto no header viraria
+   referência do position: fixed dos filhos e o backdrop do menu mobile
+   deixaria de cobrir a tela */
+.header::before {
+  content: '';
+  position: absolute;
+  /* -1px: o fundo passa por baixo da borda; sem isso o fio translúcido
+     aparecia sobre o creme da página e virava uma linha clara */
+  inset: 0 0 -1px;
+  z-index: -1;
+  background: var(--bg-dark);
+  transition: background-color 0.3s var(--ease);
+}
+
+.header.is-rolado {
+  border-bottom-color: rgba(201, 162, 107, 0.18);
+}
+
+.header.is-rolado::before {
+  background: rgba(20, 16, 14, 0.82);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  backdrop-filter: saturate(140%) blur(14px);
+}
+
+/* navegador sem desfoque: sem ele a transparência só atrapalharia a leitura */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .header.is-rolado::before {
+    background: var(--bg-dark);
+  }
 }
 
 .header__bar {
@@ -20,49 +51,87 @@
 }
 
 .header__logo img {
-  height: 64px;
+  height: 60px;
   width: auto;
 }
 
 .header__nav {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 36px;
 }
 
 .header__nav ul {
   display: flex;
-  gap: 28px;
+  gap: 32px;
 }
 
 .header__nav ul a {
+  position: relative;
+  display: inline-block;
+  padding: 6px 0;
   color: var(--text-inverse-muted);
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 500;
-  transition: color 0.2s ease;
+  letter-spacing: 0.01em;
+  transition: color 0.25s var(--ease);
+}
+
+/* sublinhado que cresce da esquerda: mostra onde está o mouse sem pesar */
+.header__nav ul a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--tan);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease);
 }
 
 @media (hover: hover) {
   .header__nav ul a:hover {
-    color: var(--accent);
+    color: var(--text-inverse);
+  }
+
+  .header__nav ul a:hover::after {
+    transform: scaleX(1);
   }
 }
 
 /* página atual em destaque no menu */
 .header__nav ul a.is-atual {
-  color: var(--accent);
-  position: relative;
+  color: var(--tan);
 }
 
 .header__nav ul a.is-atual::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent);
+  transform: scaleX(1);
+}
+
+/* CTA menor e de contorno: o botão cheio fica para o hero, aqui ele só convida */
+.header__cta {
+  padding: 10px 20px;
+  font-size: 13.5px;
+  color: var(--tan);
+  border-color: rgba(217, 185, 143, 0.45);
+  background: transparent;
+}
+
+@media (hover: hover) {
+  .header__cta:hover {
+    background: var(--tan);
+    border-color: var(--tan);
+    color: var(--black);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header__nav ul a::after,
+  .header::before {
+    transition: none;
+  }
 }
 
 .header__toggle {
@@ -104,8 +173,14 @@
     display: flex;
   }
 
-  .header__nav ul a.is-atual::after {
+  /* no menu aberto a linha fina entre os itens já organiza: sem sublinhado */
+  .header__nav ul a::after {
     display: none;
+  }
+
+  /* menu aberto: o fundo fica sólido para os links lerem bem */
+  .header:has(.header__nav.is-open)::before {
+    background: var(--bg-dark);
   }
 
   /* escurece a página atrás do menu e fecha ao tocar fora */
@@ -174,6 +249,7 @@
   .header__cta {
     justify-content: center;
     margin-top: 10px;
+    min-height: 44px;
   }
 
   .header__toggle.is-open span:nth-child(1) {

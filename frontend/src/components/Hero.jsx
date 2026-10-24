@@ -1,23 +1,18 @@
 import { Link } from 'react-router-dom'
-import logo from '../assets/Optica Popular - Logo Branco.png'
-import fotoLoja from '../assets/foto_loja.png'
+import Armacao from './Armacao'
 import './Hero.css'
+
+// o que a loja já vende: a faixa abaixo dos botões responde "tem o que eu procuro?"
+const categorias = ['Óculos de grau', 'Óculos de sol', 'Lentes de contato', 'Relógios', 'Joias']
 
 function Hero() {
   return (
     <section id="inicio" className="hero">
-      <img
-        className="hero__foto-loja"
-        src={fotoLoja}
-        alt="Interior da Óptica Popular"
-        loading="lazy"
-      />
-
       <div className="container hero__grid">
         <div className="hero__content">
-          <span className="eyebrow hero__eyebrow">Óptica Popular</span>
+          <span className="eyebrow">Óptica e joalheria</span>
           <h1>
-            Sua visão, <br />o nosso estilo.
+            Sua visão, <em>o nosso estilo</em>.
           </h1>
           <p className="hero__text">
             Óculos de grau, óculos de sol, lentes de contato, relógios e joias com atendimento próximo e
@@ -35,19 +30,22 @@ function Hero() {
               Entre em contato
             </a>
           </div>
+
+          <div className="hero__faixa">
+            <ul className="hero__categorias" aria-label="O que você encontra na loja">
+              {categorias.map((categoria) => (
+                <li key={categoria}>{categoria}</li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        {/* a marca aparece solta sobre o fundo escuro — sem cartão nem moldura */}
+        {/* armação ilustrada no lugar da foto da fachada, que tinha resolução
+            baixa demais para ser o destaque da página */}
         <div className="hero__visual">
-
-          <img
-            className="hero__marca"
-            src={logo}
-            alt="Óptica Popular"
-            width="926"
-            height="626"
-            fetchPriority="high"
-          />
+          <span className="hero__aneis" aria-hidden="true" />
+          <Armacao className="hero__armacao" />
+          <span className="hero__sombra" aria-hidden="true" />
         </div>
       </div>
     </section>

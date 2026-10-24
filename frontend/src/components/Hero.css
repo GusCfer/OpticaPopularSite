@@ -1,129 +1,240 @@
+/* fundo escuro continua o header: o topo da página lê como um bloco só */
 .hero {
   position: relative;
-  background: radial-gradient(circle at 20% 20%, var(--brown-900) 0%, var(--black) 55%);
+  background:
+    radial-gradient(ellipse 80% 70% at 85% 30%, rgba(90, 59, 39, 0.45) 0%, transparent 60%),
+    var(--black);
   color: var(--text-inverse);
-  padding: 96px 0;
+  padding: 96px 0 104px;
   overflow: hidden;
-  z-index: 0;
-}
-
-.hero__foto-loja {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  z-index: 1;
-  opacity: 0.1;
-
+  isolation: isolate;
 }
 
 .hero__grid {
-  position: relative;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1fr 1.05fr;
   align-items: center;
-  gap: 48px;
-  z-index: 2;
+  gap: 72px;
 }
 
-.hero__content {
-  position: relative;
-  z-index: 2;
-}
-
-.hero__eyebow {
-  color: var(--accent);
-  z-index: 2;
+.hero .eyebrow {
+  color: var(--tan);
 }
 
 .hero h1 {
-  font-size: clamp(34px, 4.6vw, 52px);
+  font-size: clamp(40px, 5.4vw, 68px);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
   color: var(--text-inverse);
-  margin-bottom: 20px;
-  z-index: 2;
+  margin-bottom: 24px;
+}
+
+/* sobre o escuro o marrom some: o itálico ganha o dourado */
+.hero h1 em {
+  color: var(--tan);
 }
 
 .hero__text {
   color: var(--text-inverse-muted);
-  font-size: 17px;
-  max-width: 480px;
-  margin-bottom: 32px;
-  z-index: 2;
+  font-size: 17.5px;
+  max-width: 470px;
+  margin-bottom: 36px;
 }
 
 .hero__actions {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
-  z-index: 2;
 }
+
+/* faixa das categorias: discreta, separada por pontos dourados */
+.hero__faixa {
+  --sep: 31px; /* ponto (3px) + 14px de cada lado */
+  margin-top: 44px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-inverse);
+  overflow: hidden;
+}
+
+/* todo item leva o ponto na frente; a lista recua o tamanho de um ponto e o
+   overflow da faixa corta o que sobra no começo de cada linha. Assim a quebra
+   no celular nunca começa com um ponto solto. */
+.hero__categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 0;
+  margin-left: calc(var(--sep) * -1);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--text-inverse-muted);
+}
+
+.hero__categorias li {
+  display: inline-flex;
+  align-items: center;
+}
+
+.hero__categorias li::before {
+  content: '';
+  width: 3px;
+  height: 3px;
+  margin: 0 14px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.8;
+}
+
+/* ---------- Armação ---------- */
 
 .hero__visual {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-.hero__marca {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  max-width: 560px;
   width: 100%;
-  max-width: 360px;
-  height: auto;
-  z-index: 2;
+  margin-inline: auto;
 }
 
-@media (max-width: 900px) {
+/* anéis finos atrás da armação, como a régua de um optômetro, e um brilho
+   quente no centro que destaca o acetato do fundo escuro */
+.hero__aneis {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(201, 162, 107, 0.22) 0%, rgba(201, 162, 107, 0.06) 38%, transparent 62%),
+    repeating-radial-gradient(
+      circle,
+      transparent 0 calc(16.6% - 1px),
+      rgba(201, 162, 107, 0.16) calc(16.6% - 1px) 16.6%
+    );
+  /* os anéis somem nas bordas em vez de terminar num círculo duro */
+  -webkit-mask-image: radial-gradient(circle, #000 45%, transparent 71%);
+  mask-image: radial-gradient(circle, #000 45%, transparent 71%);
+}
+
+.hero__armacao {
+  position: relative;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 28px 32px rgba(0, 0, 0, 0.55));
+  animation: armacao-flutua 7s ease-in-out infinite;
+}
+
+/* sombra no "chão": acompanha a flutuação encolhendo quando a armação sobe */
+.hero__sombra {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 18%;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.6), transparent 70%);
+  animation: sombra-respira 7s ease-in-out infinite;
+}
+
+.armacao__reflexo {
+  animation: reflexo-passa 7s ease-in-out infinite;
+}
+
+@keyframes armacao-flutua {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(-1deg);
+  }
+}
+
+@keyframes sombra-respira {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleX(0.85);
+    opacity: 0.6;
+  }
+}
+
+/* o reflexo cruza as duas lentes e fica parado fora delas o resto do ciclo */
+@keyframes reflexo-passa {
+  0%,
+  55% {
+    transform: rotate(18deg) translateX(0);
+  }
+  85%,
+  100% {
+    transform: rotate(18deg) translateX(820px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__armacao,
+  .hero__sombra,
+  .armacao__reflexo {
+    animation: none;
+  }
+}
+
+/* ---------- Tablet ---------- */
+
+@media (max-width: 960px) {
   .hero {
-    padding: 48px 0 52px;
+    padding: 64px 0 72px;
   }
 
   .hero__grid {
     grid-template-columns: 1fr;
-    gap: 28px;
-    text-align: center;
+    gap: 48px;
   }
 
   .hero__text {
-    font-size: 16px;
-    margin-inline: auto;
-    margin-bottom: 24px;
+    max-width: 560px;
   }
 
-  .hero__actions {
-    justify-content: center;
+  /* empilhado, o quadrado inteiro ficaria alto demais: a armação vem antes
+     e os anéis se espremem num retângulo */
+  .hero__visual {
+    order: -1;
+    aspect-ratio: 16 / 9;
+    max-width: 480px;
   }
 
-  .hero__marca {
-    max-width: 220px;
+  .hero__armacao {
+    width: 82%;
+  }
+
+  .hero__sombra {
+    bottom: 10%;
   }
 }
 
+/* ---------- Mobile ---------- */
+
 @media (max-width: 600px) {
   .hero {
-    padding: 26px 0 30px;
+    padding: 32px 0 44px;
   }
 
   .hero__grid {
-    gap: 20px;
-    z-index: 2;
+    gap: 32px;
   }
 
   .hero h1 {
-    font-size: clamp(25px, 7.2vw, 30px);
-    margin-bottom: 10px;
-    z-index: 2;
+    font-size: clamp(32px, 9.4vw, 40px);
+    margin-bottom: 12px;
   }
 
   .hero__text {
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 14.5px;
+    line-height: 1.55;
     max-width: 40ch;
-    margin-bottom: 18px;
-    z-index: 2;
+    margin-bottom: 22px;
   }
 
   .hero__text-extra {
@@ -132,23 +243,34 @@
 
   /* lado a lado ocupa metade da altura de dois botões empilhados.
      flex-basis auto (e não 0) faz cada um pedir a largura do próprio
-     rótulo: sem isso "Agende uma avaliação" quebrava em duas linhas e
-     esticava os dois botões. Em tela muito estreita eles empilham. */
+     rótulo: sem isso o rótulo quebrava em duas linhas e esticava os
+     dois botões. Em tela muito estreita eles empilham. */
   .hero__actions {
     gap: 8px;
-    z-index: 2;
   }
 
   .hero__actions .btn {
     flex: 1 1 auto;
     padding: 11px 12px;
-    font-size: 13px;
-    z-index: 2;
+    font-size: 13.5px;
   }
 
-  /* a marca já aparece no header logo acima: aqui ela é só um selo */
-  .hero__marca {
-    max-width: 100px;
-    z-index: 2;
+  .hero__faixa {
+    --sep: 21px;
+    margin-top: 24px;
+    padding-top: 16px;
+  }
+
+  .hero__categorias {
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  .hero__categorias li::before {
+    margin: 0 9px;
+  }
+
+  .hero__visual {
+    max-width: 340px;
   }
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, formatarPreco } from '../services/api'
 import { rotaDoProduto } from '../lib/compartilhar'
+import { useRevela } from '../lib/useRevela'
 import './VitrineCarrossel.css'
 
 const QUANTOS = 14
@@ -35,6 +36,7 @@ function VitrineCarrossel() {
   const [tocando, setTocando] = useState(false)
   const [naTela, setNaTela] = useState(true)
   const secaoRef = useRef(null)
+  const revelaRef = useRevela([produtos])
   const navegar = useNavigate()
 
   useEffect(() => {
@@ -78,18 +80,27 @@ function VitrineCarrossel() {
   const parada = tocando || !naTela
 
   return (
-    <section id="vitrine" className="section vitrine" ref={secaoRef}>
+    <section
+      id="vitrine"
+      className="section vitrine"
+      ref={(el) => {
+        secaoRef.current = el
+        revelaRef.current = el
+      }}
+    >
       <div className="container">
-        <div className="section-head center">
+        <div className="section-head center revela">
           <span className="eyebrow">Passeando pelo catálogo</span>
-          <h2>Vitrine da loja</h2>
+          <h2>
+            Vitrine <em>da loja</em>
+          </h2>
           <p>Uma seleção diferente a cada visita. Toque em uma peça para ver de perto.</p>
         </div>
       </div>
 
       {/* fora do .container de propósito: a esteira vai de ponta a ponta da tela */}
       <div
-        className="vitrine__esteira"
+        className="vitrine__esteira revela"
         onPointerDown={() => setTocando(true)}
         onPointerUp={() => setTocando(false)}
         onPointerCancel={() => setTocando(false)}
@@ -114,9 +125,12 @@ function VitrineCarrossel() {
                 <span className="vitrine__foto">
                   <img src={produto.imagemUrl} alt="" loading="lazy" draggable={false} />
                 </span>
-                <span className="vitrine__nome">{produto.nome}</span>
-                <span className="vitrine__preco">
-                  {formatarPreco(produto.precoPromocional ?? produto.preco)}
+                <span className="vitrine__corpo">
+                  {produto.marca && <span className="vitrine__marca">{produto.marca}</span>}
+                  <span className="vitrine__nome">{produto.nome}</span>
+                  <span className="vitrine__preco">
+                    {formatarPreco(produto.precoPromocional ?? produto.preco)}
+                  </span>
                 </span>
               </button>
             ))

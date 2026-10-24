@@ -152,7 +152,7 @@ function Produtos() {
       <section className="produtos-topo">
         <div className="container">
           <span className="eyebrow produtos-topo__eyebrow">Catálogo</span>
-          <h1>{nomeCategoria || 'Nossos produtos'}</h1>
+          <h1>{nomeCategoria ? nomeCategoria : <>Nossos <em>produtos</em></>}</h1>
           <p>
             Óculos, relógios e joias disponíveis na loja.{' '}
             {/* a instrução só no desktop: no celular custava duas linhas antes da grade */}

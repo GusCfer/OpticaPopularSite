@@ -12,6 +12,7 @@ const ancoras = [
 
 function Header() {
   const [open, setOpen] = useState(false)
+  const [rolado, setRolado] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -39,6 +40,20 @@ function Header() {
   }, [open])
 
   /**
+   * Passou dos primeiros pixels, o header fica translúcido com desfoque:
+   * o conteúdo aparece por trás e a barra pesa menos sobre a página.
+   * passive: o listener não segura a rolagem no celular.
+   */
+  useEffect(() => {
+    function aoRolar() {
+      setRolado(window.scrollY > 10)
+    }
+    aoRolar()
+    window.addEventListener('scroll', aoRolar, { passive: true })
+    return () => window.removeEventListener('scroll', aoRolar)
+  }, [])
+
+  /**
    * Na home, rola até a seção. Em outra página (/produtos), volta para a home
    * pedindo o scroll pela state da rota — quem faz o scroll é a Home.
    */
@@ -55,7 +70,7 @@ function Header() {
   }
 
   return (
-    <header className="header">
+    <header className={`header ${rolado ? 'is-rolado' : ''}`}>
       <div className="container header__bar">
         <Link to="/" className="header__logo" onClick={() => setOpen(false)}>
           <img src={logo} alt="Óptica Popular" />
@@ -82,7 +97,7 @@ function Header() {
           </ul>
           <a
             href={naHome ? '#contato' : '/#contato'}
-            className="btn btn-primary header__cta"
+            className="btn header__cta"
             onClick={(e) => irParaSecao(e, '#contato')}
           >
             Entre em contato

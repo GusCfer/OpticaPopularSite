@@ -1,26 +1,36 @@
 .produtos-topo {
-  background: radial-gradient(circle at 20% 20%, var(--brown-900) 0%, var(--black) 60%);
+  background:
+    radial-gradient(ellipse 80% 70% at 85% 25%, rgba(90, 59, 39, 0.45) 0%, transparent 60%),
+    var(--black);
   color: var(--text-inverse);
-  padding: 64px 0 56px;
+  padding: 72px 0 64px;
+  border-bottom: 1px solid var(--border-inverse);
 }
 
 .produtos-topo h1 {
-  font-size: clamp(28px, 5.4vw, 42px);
+  font-size: clamp(32px, 5.2vw, 48px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
   color: var(--text-inverse);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.produtos-topo h1 em {
+  color: var(--tan);
 }
 
 .produtos-topo p {
   color: var(--text-inverse-muted);
   max-width: 560px;
+  font-size: 16.5px;
 }
 
 .produtos-topo__eyebrow {
-  color: var(--accent);
+  color: var(--tan);
 }
 
 .produtos {
-  padding-top: 40px;
+  padding-top: 48px;
 }
 
 .produtos__filtros {
@@ -29,7 +39,9 @@
   justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  padding-bottom: 24px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
 }
 
 .produtos__chips {
@@ -43,19 +55,23 @@
   background: var(--bg-elevated);
   color: var(--text-muted);
   border-radius: 999px;
-  padding: 9px 18px;
-  font-size: 14px;
+  padding: 10px 20px;
+  font-size: 13.5px;
   font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: var(--shadow-sm);
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
+    background-color 0.25s var(--ease),
+    color 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    transform 0.25s var(--ease);
 }
 
 @media (hover: hover) {
   .chip:hover {
     border-color: var(--brown-300);
     color: var(--text);
+    transform: translateY(-1px);
   }
 }
 
@@ -65,32 +81,53 @@
   color: var(--text-inverse);
 }
 
+@media (hover: hover) {
+  .chip--ativo:hover {
+    border-color: var(--brown-900);
+    background: var(--brown-900);
+    color: var(--text-inverse);
+  }
+}
+
 .produtos__busca {
   font-family: inherit;
-  font-size: 15px;
-  padding: 11px 16px;
-  border: 1px solid var(--border);
+  font-size: 14.5px;
+  padding: 11px 18px;
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
   background: var(--bg-elevated);
   color: var(--text);
-  min-width: 260px;
+  min-width: 280px;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 0.25s var(--ease),
+    box-shadow 0.25s var(--ease);
+}
+
+.produtos__busca::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
 }
 
 .produtos__busca:focus {
   outline: 2px solid var(--brown-300);
   outline-offset: 1px;
+  border-color: var(--brown-500);
 }
 
 .produtos__contagem {
-  font-size: 13px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .produtos__grid {
   /* grade: todos os cards com a mesma largura, linhas alinhadas */
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
   gap: 24px;
 }
 
@@ -99,9 +136,12 @@
 }
 
 .produtos__aviso {
-  padding: 48px 0;
+  padding: 56px 24px;
   text-align: center;
   color: var(--text-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 @media (max-width: 720px) {
@@ -121,7 +161,6 @@
   .produtos__busca {
     min-width: 0;
   }
-
 }
 
 /* Tablet: com auto-fill o minmax de 230px só cabia duas vezes em 768px e
@@ -135,17 +174,17 @@
 
 @media (max-width: 600px) {
   .produtos-topo {
-    padding: 20px 0 18px;
+    padding: 24px 0 22px;
   }
 
   .produtos-topo h1 {
-    font-size: clamp(21px, 6vw, 26px);
+    font-size: clamp(23px, 6.5vw, 28px);
     margin-bottom: 6px;
   }
 
   .produtos-topo p {
-    font-size: 12.5px;
-    line-height: 1.4;
+    font-size: 13px;
+    line-height: 1.45;
   }
 
   .produtos-topo__extra {
@@ -164,7 +203,8 @@
 
   .produtos__filtros {
     gap: 12px;
-    margin-bottom: 10px;
+    padding-bottom: 14px;
+    margin-bottom: 12px;
   }
 
   .produtos__chips {
@@ -185,23 +225,25 @@
 
   .chip {
     flex: 0 0 auto;
-    padding: 8px 13px;
+    min-height: 44px;
+    padding: 8px 15px;
     font-size: 12.5px;
   }
 
   /* 16px é obrigatório: com menos, o Safari dá zoom ao focar o campo */
   .produtos__busca {
     font-size: 16px;
-    padding: 9px 14px;
+    min-height: 44px;
+    padding: 9px 16px;
   }
 
   .produtos__contagem {
-    font-size: 12px;
+    font-size: 11px;
     margin-bottom: 12px;
   }
 
   .produtos__aviso {
-    padding: 32px 0;
+    padding: 32px 16px;
     font-size: 14px;
   }
 }

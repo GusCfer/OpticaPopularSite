@@ -1,40 +1,61 @@
+/* ============================================================
+   Fundação visual — Óptica Popular
+   Direção: boutique de ótica. Fundo creme quente, tinta quase
+   preta, marrom como cor de marca e um dourado discreto como
+   acento. Serifa editorial (Fraunces) nos títulos, Inter no texto.
+   Os nomes antigos das variáveis continuam valendo: os componentes
+   e o painel admin dependem deles.
+   ============================================================ */
+
 :root {
-  --black: #120d0b;
-  --black-soft: #1c1512;
-  --brown-950: #241610;
-  --brown-900: #3b2417;
-  --brown-700: #5c3a26;
-  --brown-500: #7a4d30;
-  --brown-300: #a9754f;
-  --tan: #d8b48a;
-  --cream: #f4ece1;
-  --white: #fffaf4;
+  --black: #14100e;
+  --black-soft: #1e1814;
+  --brown-950: #261911;
+  --brown-900: #3a2619;
+  --brown-700: #5a3b27;
+  --brown-500: #8a5a3a;
+  --brown-300: #b58a63;
+  --tan: #d9b98f;
+  --gold: #c9a26b;
+  --cream: #f6f0e7;
+  --sand: #ece3d6;
+  --white: #fffcf7;
 
   --bg: var(--cream);
   --bg-elevated: var(--white);
+  --bg-muted: var(--sand);
   --bg-dark: var(--black);
   --bg-dark-soft: var(--black-soft);
 
-  --text: #231712;
-  --text-muted: #6b5647;
-  --text-inverse: var(--cream);
-  --text-inverse-muted: #c9b8a8;
+  --text: #1d1512;
+  --text-muted: #6e5c4f;
+  --text-inverse: #f6f0e7;
+  --text-inverse-muted: #bfae9e;
 
   --primary: var(--brown-700);
   --primary-hover: var(--brown-900);
   --accent: var(--tan);
 
-  --border: rgba(36, 22, 16, 0.12);
-  --border-inverse: rgba(244, 236, 225, 0.14);
-  --shadow: 0 20px 40px -20px rgba(18, 13, 11, 0.35);
+  --border: rgba(29, 21, 18, 0.1);
+  --border-strong: rgba(29, 21, 18, 0.18);
+  --border-inverse: rgba(246, 240, 231, 0.12);
 
-  --font-heading: 'Caacupé One', Georgia, 'Times New Roman', serif;
+  --shadow-sm: 0 1px 2px rgba(20, 16, 14, 0.06), 0 4px 12px -6px rgba(20, 16, 14, 0.12);
+  --shadow: 0 24px 48px -24px rgba(20, 16, 14, 0.32);
+  --shadow-lg: 0 40px 80px -32px rgba(20, 16, 14, 0.45);
+
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --font-heading: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
 
-
-  --container: 1180px;
+  --container: 1200px;
   /* altura do header fixo — usada para o scroll das âncoras não ficar por baixo dele */
-  --header-h: 92px;
+  --header-h: 84px;
 
   color-scheme: light;
   color: var(--text);
@@ -53,7 +74,7 @@ body {
   margin: 0;
   font-family: var(--font-body);
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--text);
   background: var(--bg);
   /* nada deve criar barra horizontal no celular */
@@ -65,14 +86,26 @@ h1,
 h2,
 h3 {
   font-family: var(--font-heading);
-  font-weight: 700;
-  line-height: 1.15;
+  font-weight: 500;
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
   margin: 0;
   color: inherit;
+  text-wrap: balance;
+}
+
+/* itálico da serifa como "voz" da marca: <em> dentro de títulos */
+h1 em,
+h2 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--brown-500);
 }
 
 p {
   margin: 0;
+  text-wrap: pretty;
 }
 
 a {
@@ -96,6 +129,11 @@ ul {
   list-style: none;
 }
 
+::selection {
+  background: var(--tan);
+  color: var(--black);
+}
+
 /* o header é fixo: sem isso a âncora para no topo da tela e some atrás dele */
 section[id] {
   scroll-margin-top: calc(var(--header-h) + 8px);
@@ -110,26 +148,37 @@ section[id] {
   width: 100%;
   max-width: var(--container);
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 32px;
 }
 
 .section {
-  padding: 88px 0;
+  padding: 112px 0;
 }
 
+/* eyebrow com um fio dourado na frente: assinatura das seções */
 .eyebrow {
-  display: inline-block;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--brown-500);
-  margin-bottom: 12px;
+  margin-bottom: 18px;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
 }
 
 .section-head {
-  max-width: 620px;
-  margin: 0 0 48px;
+  max-width: 640px;
+  margin: 0 0 56px;
 }
 
 .section-head.center {
@@ -137,32 +186,43 @@ section[id] {
   text-align: center;
 }
 
+/* centralizado, o fio vai dos dois lados */
+.section-head.center .eyebrow::after {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
 .section-head h2 {
-  font-size: clamp(26px, 3.4vw, 34px);
-  margin-bottom: 14px;
+  font-size: clamp(32px, 4.2vw, 48px);
+  margin-bottom: 18px;
 }
 
 .section-head p {
   color: var(--text-muted);
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 14px 28px;
+  gap: 10px;
+  padding: 15px 30px;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14.5px;
+  letter-spacing: 0.01em;
   line-height: 1.2;
   border: 1px solid transparent;
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
+    background-color 0.25s var(--ease),
+    color 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    box-shadow 0.25s var(--ease),
+    transform 0.25s var(--ease);
 }
 
 .btn-primary {
@@ -173,7 +233,7 @@ section[id] {
 .btn-outline {
   background: transparent;
   color: var(--text-inverse);
-  border-color: var(--border-inverse);
+  border-color: rgba(246, 240, 231, 0.28);
 }
 
 .btn-dark {
@@ -181,14 +241,22 @@ section[id] {
   color: var(--text-inverse);
 }
 
+/* variante clara: botão secundário sobre fundo claro */
+.btn-claro {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
 /* no toque o :hover "gruda" depois do tap — só aplica onde existe mouse */
 @media (hover: hover) {
   .btn:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
   }
 
   .btn-primary:hover {
     background: var(--white);
+    box-shadow: 0 12px 28px -12px rgba(217, 185, 143, 0.6);
   }
 
   .btn-outline:hover {
@@ -198,11 +266,40 @@ section[id] {
 
   .btn-dark:hover {
     background: var(--brown-900);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-claro:hover {
+    border-color: var(--text);
+    background: var(--bg-elevated);
   }
 }
 
 .btn:active {
   transform: translateY(1px);
+}
+
+/* entrada suave dos blocos ao rolar: quem usar adiciona .revela no elemento
+   e o hook useRevela() troca para .is-visivel quando ele aparece */
+.revela {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.8s var(--ease),
+    transform 0.8s var(--ease);
+}
+
+.revela.is-visivel {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revela {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 /* ============================================================
@@ -216,11 +313,19 @@ section[id] {
   :root {
     --header-h: 64px;
   }
+
+  .section {
+    padding: 80px 0;
+  }
 }
 
 @media (max-width: 720px) {
   .section {
-    padding: 48px 0;
+    padding: 56px 0;
+  }
+
+  .container {
+    padding: 0 24px;
   }
 }
 
@@ -231,8 +336,7 @@ section[id] {
 
   body {
     font-size: 15px;
-    line-height: 1.5;
-    /* espaço para o botão flutuante do WhatsApp não cobrir o fim da página */
+    line-height: 1.55;
     padding-bottom: env(safe-area-inset-bottom);
   }
 
@@ -241,31 +345,37 @@ section[id] {
   }
 
   .section {
-    padding: 32px 0;
+    padding: 44px 0;
   }
 
   .section-head {
-    margin-bottom: 18px;
+    margin-bottom: 24px;
   }
 
   .section-head h2 {
-    font-size: clamp(20px, 5.6vw, 24px);
-    margin-bottom: 6px;
+    font-size: clamp(25px, 7vw, 30px);
+    margin-bottom: 8px;
   }
 
   .section-head p {
-    font-size: 13.5px;
+    font-size: 14px;
   }
 
   .eyebrow {
     font-size: 10.5px;
-    letter-spacing: 0.1em;
-    margin-bottom: 4px;
+    letter-spacing: 0.14em;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+
+  .eyebrow::before,
+  .section-head.center .eyebrow::after {
+    width: 18px;
   }
 
   /* 44px continua sendo alvo de toque confortável, com bem menos altura */
   .btn {
-    padding: 12px 18px;
+    padding: 12px 20px;
     min-height: 44px;
     font-size: 14px;
   }

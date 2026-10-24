@@ -2,14 +2,14 @@
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(12, 9, 8, 0.88);
-  backdrop-filter: blur(4px);
+  background: rgba(20, 16, 14, 0.86);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   cursor: zoom-out;
-  animation: lightbox-entrada 0.18s ease-out;
+  animation: lightbox-entrada 0.25s var(--ease);
 }
 
 @keyframes lightbox-entrada {
@@ -28,34 +28,38 @@
   right: 20px;
   width: 44px;
   height: 44px;
-  border: none;
+  border: 1px solid var(--border-inverse);
   border-radius: 50%;
-  background: rgba(244, 236, 225, 0.12);
+  background: rgba(246, 240, 231, 0.1);
   color: var(--cream);
-  font-size: 30px;
+  font-size: 28px;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  transition:
+    background-color 0.25s var(--ease),
+    border-color 0.25s var(--ease);
   z-index: 99999;
 }
 
 .lightbox__fechar:hover {
-  background: rgba(244, 236, 225, 0.24);
+  background: rgba(246, 240, 231, 0.22);
+  border-color: var(--tan);
 }
 
 .lightbox__conteudo {
   margin: 0;
-  max-width: min(900px, 100%);
+  max-width: min(880px, 100%);
   max-height: 100%;
   display: flex;
   flex-direction: column;
   cursor: default;
   background: var(--bg-elevated);
-  border-radius: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.8);
+  box-shadow: var(--shadow-lg);
 }
 
 /* ---------------------------- carrossel ---------------------------- */
@@ -108,7 +112,7 @@
   user-select: none;
   -webkit-user-select: none;
   touch-action: pan-x;
-  transition: transform 0.25s ease;
+  transition: transform 0.3s var(--ease);
 }
 
 .lightbox__slide img.is-zoom {
@@ -122,24 +126,28 @@
   transform: translateY(-50%);
   width: 44px;
   height: 44px;
-  border: none;
+  border: 1px solid var(--border-inverse);
   border-radius: 50%;
-  background: rgba(18, 13, 11, 0.6);
+  background: rgba(20, 16, 14, 0.65);
+  backdrop-filter: blur(4px);
   color: var(--cream);
   font-size: 26px;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  transition:
+    background-color 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    opacity 0.25s var(--ease);
 }
 
 .lightbox__seta--antes {
-  left: 10px;
+  left: 12px;
 }
 
 .lightbox__seta--depois {
-  right: 10px;
+  right: 12px;
 }
 
 .lightbox__seta:disabled {
@@ -149,7 +157,8 @@
 
 @media (hover: hover) {
   .lightbox__seta:not(:disabled):hover {
-    background: rgba(18, 13, 11, 0.85);
+    background: rgba(20, 16, 14, 0.88);
+    border-color: var(--tan);
   }
 }
 
@@ -163,26 +172,27 @@
 .lightbox__posicao,
 .lightbox__dica-zoom {
   position: absolute;
-  bottom: 10px;
-  font-size: 11.5px;
+  bottom: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 5px 11px;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
   border-radius: 999px;
-  background: rgba(18, 13, 11, 0.72);
+  background: rgba(20, 16, 14, 0.76);
+  backdrop-filter: blur(4px);
   color: var(--cream);
   font-variant-numeric: tabular-nums;
   pointer-events: none;
 }
 
 .lightbox__posicao {
-  left: 10px;
+  left: 12px;
 }
 
 .lightbox__dica-zoom {
-  right: 10px;
+  right: 12px;
   font-weight: 500;
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
 /* ---------------------------- miniaturas --------------------------- */
@@ -192,7 +202,7 @@
   /* quem cede altura no cartão é a foto, nunca estas três faixas de baixo */
   flex-shrink: 0;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 12px 18px;
   overflow-x: auto;
   scrollbar-width: none;
   background: var(--bg);
@@ -209,11 +219,13 @@
   height: 54px;
   padding: 0;
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  background: var(--cream);
+  background: var(--sand);
   opacity: 0.55;
-  transition: opacity 0.2s ease, border-color 0.2s ease;
+  transition:
+    opacity 0.25s var(--ease),
+    border-color 0.25s var(--ease);
 }
 
 .lightbox__miniatura img {
@@ -237,9 +249,9 @@
 
 .lightbox__legenda {
   flex-shrink: 0;
-  padding: 16px 22px 12px;
+  padding: 20px 24px 14px;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
@@ -248,30 +260,39 @@
 .lightbox__legenda strong {
   display: block;
   font-family: var(--font-heading);
-  font-weight: bold;
-  font-size: 20px;
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--text);
 }
 
 .lightbox__marca {
+  display: block;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--brown-500);
+  margin-bottom: 2px;
 }
 
 .lightbox__preco {
-  font-family: var(--font-body);
-  font-size: 22px;
-  font-weight: bold;
+  font-family: var(--font-heading);
+  font-size: 23px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .lightbox__preco s {
-  font-size: 15px;
-  font-weight: normal;
+  font-size: 14px;
+  font-weight: 400;
   color: var(--text-muted);
   font-family: var(--font-body);
+  margin-right: 6px;
 }
 
 /* ---------------------------- compartilhar ---------------------------- */
@@ -280,7 +301,7 @@
   display: flex;
   flex-shrink: 0;
   gap: 10px;
-  padding: 0 22px 18px;
+  padding: 0 24px 20px;
 }
 
 .lightbox__acao {
@@ -291,20 +312,24 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
   background: transparent;
   color: var(--text);
   font: inherit;
   font-size: 14px;
   font-weight: 600;
+  letter-spacing: 0.01em;
   /* "Tenho interesse" em duas linhas fica com cara de erro: o texto não quebra,
      quem cede é o tamanho da fonte nas telas estreitas (regra lá embaixo) */
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition:
+    background-color 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    transform 0.25s var(--ease);
 }
 
 .lightbox__acao--destaque {
@@ -325,18 +350,21 @@
   .lightbox__acao {
     flex: 0 1 auto;
     min-width: 170px;
-    padding: 0 22px;
+    padding: 0 24px;
   }
 }
 
 /* só onde existe mouse: no celular o :hover fica "grudado" depois do toque */
 @media (hover: hover) {
   .lightbox__acao:hover {
-    background: rgba(36, 22, 16, 0.06);
+    background: var(--bg);
+    border-color: var(--text);
+    transform: translateY(-1px);
   }
 
   .lightbox__acao--destaque:hover {
-    background: var(--brown-950);
+    background: var(--brown-900);
+    border-color: transparent;
   }
 }
 
@@ -345,8 +373,16 @@
     padding: 10px;
   }
 
+  .lightbox__conteudo {
+    border-radius: var(--radius);
+  }
+
   .lightbox__slide img {
     max-height: calc(100dvh - 320px);
+  }
+
+  .lightbox__miniaturas {
+    padding: 10px 14px;
   }
 
   .lightbox__miniatura {
@@ -355,26 +391,25 @@
   }
 
   .lightbox__legenda {
-    padding: 12px 14px;
+    padding: 14px 16px 10px;
     gap: 10px;
   }
 
   .lightbox__legenda strong {
-    font-size: 17px;
+    font-size: 18px;
   }
 
   .lightbox__preco {
     font-size: 19px;
-    font-weight: bold;
   }
 
   .lightbox__acoes {
-    padding: 0 14px 14px;
+    padding: 0 16px 16px;
   }
 
   .lightbox__acao {
     font-size: 13px;
-    padding: 0 8px;
+    padding: 0 10px;
   }
 }
 
@@ -382,6 +417,6 @@
 @media (max-width: 380px) {
   .lightbox__acao {
     font-size: 12px;
-    padding: 0 4px;
+    padding: 0 6px;
   }
 }

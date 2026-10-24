@@ -1,24 +1,99 @@
+/* na cor da marca, não no verde do app: o botão conversa com o resto do site
+   e o ícone já diz que é WhatsApp */
 .whatsapp-fab {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  width: 56px;
-  height: 56px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: var(--brown-700);
   color: var(--text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow);
+  /* fio dourado por dentro: acabamento de joia, sem cor nova */
+  box-shadow:
+    inset 0 0 0 1px rgba(217, 185, 143, 0.35),
+    var(--shadow);
   z-index: 60;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.25s var(--ease),
+    transform 0.25s var(--ease);
+}
+
+/* anel de pulso: chama o olho de vez em quando, sem piscar sem parar */
+.whatsapp-fab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--tan);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .whatsapp-fab::before {
+    animation: whatsapp-pulso 3.2s var(--ease) 1.5s infinite;
+  }
+}
+
+@keyframes whatsapp-pulso {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  60%,
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+.whatsapp-fab__dica {
+  position: absolute;
+  right: calc(100% + 14px);
+  top: 50%;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--black);
+  color: var(--text-inverse);
+  border: 1px solid var(--border-inverse);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(6px, -50%);
+  pointer-events: none;
+  transition:
+    opacity 0.25s var(--ease),
+    transform 0.25s var(--ease);
 }
 
 @media (hover: hover) {
   .whatsapp-fab:hover {
     background: var(--brown-900);
     transform: translateY(-2px);
+  }
+
+  .whatsapp-fab:hover .whatsapp-fab__dica {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+/* quem navega pelo teclado também vê a dica */
+.whatsapp-fab:focus-visible .whatsapp-fab__dica {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp-fab,
+  .whatsapp-fab__dica {
+    transition: none;
   }
 }
 
@@ -28,5 +103,10 @@
     bottom: calc(16px + env(safe-area-inset-bottom));
     width: 54px;
     height: 54px;
+  }
+
+  /* no celular a dica não tem como aparecer direito (sem hover): some de vez */
+  .whatsapp-fab__dica {
+    display: none;
   }
 }

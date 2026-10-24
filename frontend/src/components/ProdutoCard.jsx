@@ -52,8 +52,10 @@ function ProdutoCard({ produto, aoAmpliar }) {
         <div className="produto-card__preco">
           {produto.precoPromocional ? (
             <>
+              <strong className="produto-card__preco-promo">
+                {formatarPreco(produto.precoPromocional)}
+              </strong>
               <span className="produto-card__preco-antigo">{formatarPreco(produto.preco)}</span>
-              <strong>{formatarPreco(produto.precoPromocional)}</strong>
             </>
           ) : (
             <strong>{formatarPreco(produto.preco)}</strong>
