@@ -207,7 +207,7 @@ function Enquadramento() {
   return <PerspectiveCamera makeDefault position={[0, 0.4, largo ? 9 : 12]} fov={32} />
 }
 
-function Armacao3D({ className = '', fallback = null }) {
+function Armacao3D({ className = '' }) {
   const caixa = useRef(null)
   const giro = useRef({ y: 0, vel: 0, arrastando: false, ultimoX: 0, ultimoT: 0 })
   const [visivel, setVisivel] = useState(true)
@@ -264,8 +264,6 @@ function Armacao3D({ className = '', fallback = null }) {
 
   return (
     <>
-      {/* enquanto o modelo baixa, fica a ilustração em SVG */}
-      {!pronto && fallback}
       <div ref={caixa} className={`armacao3d ${className}`} onPointerDown={pegar}>
         <Canvas
           dpr={[1, 2]}
@@ -307,9 +305,12 @@ function Armacao3D({ className = '', fallback = null }) {
             <Oculos giro={giro} animar={animar} onPronto={marcarPronto} />
           </Suspense>
         </Canvas>
-        <span className={`armacao3d__dica${mexeu ? ' armacao3d__dica--some' : ''}`} aria-hidden="true">
-          Arraste para girar
-        </span>
+        {/* a dica só entra junto com a armação, nunca sozinha enquanto o modelo baixa */}
+        {pronto && (
+          <span className={`armacao3d__dica${mexeu ? ' armacao3d__dica--some' : ''}`} aria-hidden="true">
+            Arraste para girar
+          </span>
+        )}
       </div>
     </>
   )

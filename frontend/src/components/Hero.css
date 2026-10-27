@@ -12,9 +12,9 @@
 
 .hero__grid {
   display: grid;
-  grid-template-columns: 1fr 1.05fr;
+  grid-template-columns: 1fr 1.2fr;
   align-items: center;
-  gap: 72px;
+  gap: 56px;
 }
 
 .hero .eyebrow {
@@ -22,7 +22,7 @@
 }
 
 .hero h1 {
-  font-size: clamp(40px, 5.4vw, 68px);
+  font-size: clamp(40px, 5.8vw, 78px);
   font-weight: 400;
   line-height: 1.04;
   letter-spacing: -0.025em;
@@ -37,8 +37,8 @@
 
 .hero__text {
   color: var(--text-inverse-muted);
-  font-size: 17.5px;
-  max-width: 470px;
+  font-size: 19px;
+  max-width: 500px;
   margin-bottom: 36px;
 }
 
@@ -92,7 +92,7 @@
   display: grid;
   place-items: center;
   aspect-ratio: 1 / 1;
-  max-width: 560px;
+  max-width: 680px;
   width: 100%;
   margin-inline: auto;
 }

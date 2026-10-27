@@ -6,7 +6,7 @@ import './Hero.css'
 // o que a loja já vende: a faixa abaixo dos botões responde "tem o que eu procuro?"
 const categorias = ['Óculos de grau', 'Óculos de sol', 'Lentes de contato', 'Relógios', 'Joias']
 
-// o three.js é pesado: só baixa depois da página, e enquanto isso fica a armação em SVG
+// o three.js é pesado: só baixa depois da página. A ilustração em SVG fica só para quem não tem WebGL
 const Armacao3D = lazy(() => import('./Armacao3D'))
 
 function temWebGL() {
@@ -64,12 +64,13 @@ function Hero() {
           </div>
         </div>
 
-        {/* armação 3D no destaque; sem WebGL (ou enquanto o 3D carrega) fica a ilustrada */}
+        {/* armação 3D no destaque; sem WebGL fica a ilustrada. Enquanto o 3D carrega
+            ficam só os anéis: mostrar o SVG antes dava um "pisca" de outra armação */}
         <div className="hero__visual">
           <span className="hero__aneis" aria-hidden="true" />
           {usar3D ? (
-            <Suspense fallback={<ArmacaoIlustrada />}>
-              <Armacao3D fallback={<ArmacaoIlustrada />} />
+            <Suspense fallback={null}>
+              <Armacao3D />
             </Suspense>
           ) : (
             <ArmacaoIlustrada />

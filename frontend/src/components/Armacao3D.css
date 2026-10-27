@@ -2,7 +2,7 @@
    e os anéis dourados do hero continuam aparecendo por trás */
 .armacao3d {
   position: absolute;
-  inset: -6%;
+  inset: -10%;
   cursor: grab;
   /* no celular a rolagem vertical continua; o arraste lateral gira a armação */
   touch-action: pan-y;
