@@ -1,3 +1,4 @@
+import { lazy, Suspense, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Armacao from './Armacao'
 import './Hero.css'
@@ -5,7 +6,30 @@ import './Hero.css'
 // o que a loja já vende: a faixa abaixo dos botões responde "tem o que eu procuro?"
 const categorias = ['Óculos de grau', 'Óculos de sol', 'Lentes de contato', 'Relógios', 'Joias']
 
+// o three.js é pesado: só baixa depois da página, e enquanto isso fica a armação em SVG
+const Armacao3D = lazy(() => import('./Armacao3D'))
+
+function temWebGL() {
+  try {
+    const canvas = document.createElement('canvas')
+    return Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'))
+  } catch {
+    return false
+  }
+}
+
+function ArmacaoIlustrada() {
+  return (
+    <>
+      <Armacao className="hero__armacao" />
+      <span className="hero__sombra" aria-hidden="true" />
+    </>
+  )
+}
+
 function Hero() {
+  const [usar3D] = useState(temWebGL)
+
   return (
     <section id="inicio" className="hero">
       <div className="container hero__grid">
@@ -40,12 +64,16 @@ function Hero() {
           </div>
         </div>
 
-        {/* armação ilustrada no lugar da foto da fachada, que tinha resolução
-            baixa demais para ser o destaque da página */}
+        {/* armação 3D no destaque; sem WebGL (ou enquanto o 3D carrega) fica a ilustrada */}
         <div className="hero__visual">
           <span className="hero__aneis" aria-hidden="true" />
-          <Armacao className="hero__armacao" />
-          <span className="hero__sombra" aria-hidden="true" />
+          {usar3D ? (
+            <Suspense fallback={<ArmacaoIlustrada />}>
+              <Armacao3D fallback={<ArmacaoIlustrada />} />
+            </Suspense>
+          ) : (
+            <ArmacaoIlustrada />
+          )}
         </div>
       </div>
     </section>

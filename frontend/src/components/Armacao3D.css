@@ -1,0 +1,49 @@
+/* ocupa o mesmo quadrado da ilustração em SVG; o canvas é transparente
+   e os anéis dourados do hero continuam aparecendo por trás */
+.armacao3d {
+  position: absolute;
+  inset: -6%;
+  cursor: grab;
+  /* no celular a rolagem vertical continua; o arraste lateral gira a armação */
+  touch-action: pan-y;
+  animation: armacao3d-surge 0.6s var(--ease) both;
+}
+
+.armacao3d--arrastando {
+  cursor: grabbing;
+}
+
+.armacao3d__dica {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-inverse-muted);
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease);
+  animation: armacao3d-surge 0.6s var(--ease) 2.2s both;
+}
+
+.armacao3d__dica--some {
+  opacity: 0;
+}
+
+@keyframes armacao3d-surge {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 960px) {
+  .armacao3d {
+    inset: -10% 0;
+  }
+
+  .armacao3d__dica {
+    bottom: 4%;
+  }
+}
